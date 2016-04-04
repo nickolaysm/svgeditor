@@ -1,6 +1,6 @@
 import _ from "lodash"
 import {EDGE_CONNECTION_WIDTH} from '../const/connectors'
-
+import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 
 const distanceBetweenPoints = (x1,y1, x2,y2) => Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
 /**
@@ -35,15 +35,17 @@ const distanceBetweenPoints = (x1,y1, x2,y2) => Math.sqrt( (x1-x2)*(x1-x2) + (y1
 //}
 
 /**
- * Проверяем коннекторы на то, что есть хотя бы один отсоединенный
+ * Проверяем коннекторы на то, что есть хотя бы один отсоединенный.
+ * Если есть хоть один отсоединенный коннектор возвращаем null, иначе возвращаем коннекторы
  * @param state
  */
 export const checkConnectorsOnDisconnect = state => {
     var connectors = state.connectors.filter(connector => {
         return connector.node1.state == "DISCONNECTED" || connector.node2.state == "DISCONNECTED" ;
     })
-
-    return ( connectors != null && connectors.length ) ? true : state.connectors;
+    
+    console.log("state.connectors", state.connectors);
+    return ( connectors != null && connectors.length ) ? null : state.connectors;
 }
 
 /**
@@ -73,16 +75,9 @@ export const initConnectors = (state) => {
     return state.connectors.map(connector => {
         var node1 = state.nodes.find( node => node.id == connector.node1.id);
         var node2 = state.nodes.find( node => node.id == connector.node2.id);
-        connector.cid1 = {x: node1.x, y: node1.y};
-        connector.cid2 = {x: node2.x, y: node2.y};
+        connector.cid1 = evalConnectorCoordByEdge(node1, connector.node1.edge);
+        connector.cid2 = evalConnectorCoordByEdge(node2, connector.node2.edge);
 
-        if(connector.node1.state == "DISCONNECTED"){
-            connector.node1.state = "CONNECTED";
-            connector.node1.id = connector.node1.newNode != null ? connector.node1.newNode : connector.node1.id;
-        }else if(connector.node2.state == "DISCONNECTED"){
-            connector.node2.state = "CONNECTED";
-            connector.node2.id = connector.node2.newNode != null ? connector.node2.newNode : connector.node2.id;
-        }
         return connector;
     })
 }
@@ -121,10 +116,65 @@ export const distancePointSegment = (cid, x,y,x1,y1) => {
 }
 
 /**
+ * Расчет координаты коннектора для ноды.
+ * @param node Ужел к которому нужно присоединить коннектор
+ * @param edge Грань к которой нужно прицепить коннектор
+ */
+export const evalConnectorCoordByEdge = (node, edge) => {
+    var newCid = null;
+    //Верхняя грань
+    if(edge == EDGE_TOP){
+        newCid = {x: (node.x + Math.round(node.width/2) ),  y: node.y}
+    }else if(edge == EDGE_LEFT){//левая грань
+        newCid =  {x: node.x,  y: (node.y + Math.round(node.height/2))}
+    }else if(edge == EDGE_RIGHT){//правая грань
+        newCid =  {x: node.x + node.width,  y: (node.y + Math.round(node.height/2))} 
+    }else if(edge == EDGE_BOTTOM){//нижняя грань
+        newCid =  {x: node.x + Math.round(node.width/2),  y: node.y + node.height}
+    }
+    console.log("evalConnectorCoordByEdge: ", edge, newCid );
+    return newCid;
+}
+
+/**
+ * Вычисляет к какой границе нужно прицепить коннектор
+ * Возвращает константу [EDGE_TOP, EDGE_LEFT, EDGE_RIGHT, EDGE_BOTTOM]
+ */
+const evalEdgeForNode = (node, cid) => {
+    //Нужно определить сторону у node к которой прикрепить конец коннектора
+    //node - квадратный, т.е. стороны либо горизонтальны, либо вертикальны
+    var topSegmentResult = distancePointSegment(cid, node.x,  node.y, node.x + node.width, node.y);
+    console.log("topSegmentResult: ", topSegmentResult);
+    var leftSegmentResult = distancePointSegment(cid, node.x, node.y, node.x, node.y+node.height);
+    console.log("leftSegmentResult: ", leftSegmentResult);
+    var rightSegmentResult = distancePointSegment(cid, node.x + node.width, node.y, node.x + node.width, node.y+node.height);
+    console.log("rightSegmentResult: ", rightSegmentResult);
+    var bottomSegmentResult = distancePointSegment(cid, node.x, node.y+node.height, node.x + node.width, node.y+node.height);
+    console.log("bottomSegmentResult: ", bottomSegmentResult);
+
+    var array = [topSegmentResult, leftSegmentResult, rightSegmentResult, bottomSegmentResult];
+    var maxIndex = 0;
+    array.forEach((number, index) => {if(number < array[maxIndex]) maxIndex = index });
+    
+    if(maxIndex == 0){
+        return EDGE_TOP
+    }else if(maxIndex == 1){//левая грань
+        return EDGE_LEFT
+    }else if(maxIndex == 2){//правая грань
+        return EDGE_RIGHT
+    }else if(maxIndex == 3){//нижняя грань
+        return EDGE_BOTTOM
+    }
+    
+    return null;
+}
+
+/**
  * Расчитываем новые координаты, что бы присоединиться к узлу
  * @param node Ужел к которому нужно присоединить коннектор
  * @param cid Координаты конца коннектора
  */
+ /*
 const evalConnectorCoordForNode = (node, cid) => {
     var newCid = {x:0, y:0};
     //Нужно определить сторону у node к которой прикрепить конец коннектора
@@ -144,18 +194,18 @@ const evalConnectorCoordForNode = (node, cid) => {
 
     //Верхняя грань
     if(maxIndex == 0){
-        newCid =  {x: (node.x + Math.round(node.width/2) ),  y: node.y}
+        newCid = {edge: EDGE_TOP, cid: {x: (node.x + Math.round(node.width/2) ),  y: node.y} }
     }else if(maxIndex == 1){//левая грань
-        newCid =  {x: node.x,  y: (node.y + Math.round(node.height/2))}
+        newCid =  {edge: EDGE_LEFT, cid:{x: node.x,  y: (node.y + Math.round(node.height/2))} } 
     }else if(maxIndex == 2){//правая грань
-        newCid =  {x: node.x + node.width,  y: (node.y + Math.round(node.height/2))}
+        newCid =  {edge: EDGE_RIGHT, cid:{x: node.x + node.width,  y: (node.y + Math.round(node.height/2))} }
     }else if(maxIndex == 3){//нижняя грань
-        newCid =  {x: node.x + Math.round(node.width/2),  y: node.y + node.height}
+        newCid =  {edge: EDGE_BOTTOM, cid:{x: node.x + Math.round(node.width/2),  y: node.y + node.height} }
     }
 
     return newCid;
 }
-
+*/
 
 /**
  * Расчет коннектора. Производится, когда перетаскиваем один из концов коннектора.
@@ -175,35 +225,53 @@ export const evalConnector = (state, connector, mouseX, mouseY) => {
                 && cid.y > node.y - EDGE_CONNECTION_WIDTH && cid.y < node.y + node.height + EDGE_CONNECTION_WIDTH
         })
     }
+    
+    function createNewNodeInfo(connectorNode, nearestNode, edge){
+        var node = _.extend({}, connectorNode);
+        node.state = nearestNode == null ? node.state = "DISCONNECTED" : node.state = "CONNECTED";
+        node.edge = edge;
+        node.id =  nearestNode == null ? node.id : nearestNode.id;
+        return node;
+    }
 
     var node = null;
     var cid  = {x: mouseX, y: mouseY};
-    var cidSecond = state.selected.tail == 1 ? connector.cid2 : connector.cid1; //Неподвижная координата
+    var edge = null;
+    //var cidSecond = state.selected.tail == 1 ? connector.cid2 : connector.cid1; //Неподвижная координата
 
     //Нужно высчитать, мышь находится рядом с какой-нибудь нодой или нет
     var nearestNode = findNearestNode(state.nodes, cid);
     if( nearestNode != null){
-        cid = evalConnectorCoordForNode(nearestNode, cid, cidSecond);
+        edge = evalEdgeForNode(nearestNode, cid);
+        cid = evalConnectorCoordByEdge(nearestNode, edge);
     }
 
     var newConnector = _.extend({}, connector);
 
     if(state.selected.tail == 1) {
-        node = _.extend({}, connector.node1);
-        node.state = nearestNode == null ? node.state = "DISCONNECTED" : node.state = "CONNECTED";
-        //node.newNode =  nearestNode == null ? null : nearestNode.id;
         newConnector.cid1 = cid;
-        newConnector.node1 = node;
+        newConnector.node1 = createNewNodeInfo(connector.node1, nearestNode, edge);
     }else if(state.selected.tail == 2){
         node = _.extend({}, connector.node2);
-        newConnector.cid2 = cid;
         node.state = nearestNode == null ? node.state = "DISCONNECTED" : node.state = "CONNECTED";
+        node.edge = edge;
+        node.id =  nearestNode == null ? node.id : nearestNode.id;
         //node.newNode =  nearestNode == null ? null : nearestNode.id;
-        newConnector.node2 = node;
+        newConnector.cid2 = cid;
+        newConnector.node2 = createNewNodeInfo(connector.node2, nearestNode, edge);
     }
-    console.log("+++ evalConnector node.newNode", node.newNode, cid, nearestNode);
 
     return newConnector;
 
 
+}
+
+/**
+ * Очистить ноды от лишней информации 
+ */
+export const clearNodes = (nodes) => {
+    return nodes.map(node => {
+        node.showConnectorEndOnEdge = null;
+        return node;
+    })
 }

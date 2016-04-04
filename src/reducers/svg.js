@@ -1,6 +1,7 @@
 import _ from "lodash"
 import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
 import {initConnectors} from '../utils'
+import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT /*, EDGE_RIGHT*/} from '../const/connectors'
 
 const initState = {
     moveMode: false,
@@ -11,7 +12,7 @@ const initState = {
     //{id:"Уникальный идентификаотр узла", cord:"Координаты верхнего левого угла", width:"Ширина узла", height:"Высота узла"},
     nodes: [
          {id:0, x:10 , y: 10,  width: 120, height:100, caption: 'Узел 0', value: 'Статус'}
-        ,{id:1, x:20 , y: 70,  width: 120, height:100, caption: 'Узел 1', value: 'Статус'}
+        ,{id:1, x:270 , y: 70,  width: 120, height:100, caption: 'Узел 1', value: 'Статус'}
         ,{id:2, x:50 , y: 200, width: 120, height:100, caption: 'Узел 2', value: 'Статус'}
     ],
     /*
@@ -23,8 +24,8 @@ const initState = {
         cid2: "координаты конца коннектора id1"
     },*/
     connectors: [
-        {id:0, node1:{id:0, state:"CONNECTED"}, node2:{id:1, state:"CONNECTED"}, cid1: null, cid2: null},
-        {id:1, node1:{id:0, state:"CONNECTED"}, node2:{id:2, state:"CONNECTED"}, cid1: null, cid2: null}
+        {id:0, node1:{id:0, state:"CONNECTED", edge: EDGE_BOTTOM}, node2:{id:1, state:"CONNECTED", edge: EDGE_LEFT}, cid1: null, cid2: null},
+        {id:1, node1:{id:0, state:"CONNECTED", edge: EDGE_BOTTOM}, node2:{id:2, state:"CONNECTED", edge: EDGE_TOP}, cid1: null, cid2: null}
     ],
     changed: true
 };
@@ -57,7 +58,8 @@ const visibilityFilter = (state = initState, action) => {
           console.log('reducer cancelMove', true, action);
           return {...(state.oldState), moveMode: false, oldState: undefined };
     case STOP_MOVE_CONNECTOR:
-        return {...state, moveMode: false, connectors: action.connectors};
+        //return {...state, moveMode: false, connectors: action.connectors, oldState: undefined};
+        return {...state, nodes: action.nodes, moveMode: false, oldState: undefined};
     case STOP_MOVE:
         console.log('reducer moveMode', false, "state.selected.type", state.selected.type);
         return {...state, moveMode: false, oldState: undefined};
@@ -65,7 +67,7 @@ const visibilityFilter = (state = initState, action) => {
         console.log('reducer MOVE_NODE',action);
         return _.extend({}, state, {nodes: action.nodes, connectors: action.connectors});
     case MOVE_CONNECTOR:
-        return _.extend({}, state, {connectors: action.connectors});
+        return _.extend({}, state, {nodes: action.nodes}, {connectors: action.connectors});
     case MOUSE_MOVE:
         return state;
     default:
