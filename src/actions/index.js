@@ -1,4 +1,4 @@
-import { initConnectors, evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes} from '../utils'
+import { initConnectors, evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes, isConnectorNear} from '../utils'
 import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
 //import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 
@@ -86,17 +86,24 @@ export const mouseMove = (mouseX, mouseY) => {
             let connectors = state.connectors.map(connector => {
                 if(connector.id == state.selected.id){
                     var nodeForConnector = null;
+                    var connectorEndCid = null;
                     if(state.selected.tail == 1){
                         connector = evalConnector(state, connector, mouseX, mouseY)
                         nodeForConnector = connector.node1;
+                        connectorEndCid = connector.cid1;
                     }else{
                         connector = evalConnector(state, connector, mouseX, mouseY)
                         nodeForConnector = connector.node2;
+                        connectorEndCid = connector.cid2;
                     }
                     nodes = state.nodes.map(node => {
                         node.showConnectorEndOnEdge = null;
                         if (node.id == nodeForConnector.id && nodeForConnector.edge != null) {
                             node.showConnectorEndOnEdge = nodeForConnector.edge
+                        }
+                        node.showConnectorEnd = false;
+                        if(isConnectorNear(node, connectorEndCid)){
+                            node.showConnectorEnd = true;
                         }
                         return node;
                     });

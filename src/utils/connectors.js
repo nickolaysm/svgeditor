@@ -272,6 +272,31 @@ export const evalConnector = (state, connector, mouseX, mouseY) => {
 export const clearNodes = (nodes) => {
     return nodes.map(node => {
         node.showConnectorEndOnEdge = null;
+        node.showConnectorEnd = false;
         return node;
     })
+}
+
+/**
+ * Высчитываем координату для возможного места присоединения коннектора 
+ */
+export const getEndsCoordinate = (node, ends) => {
+    switch(ends.edge){
+        case EDGE_TOP:
+            return { x: node.x + Math.round(node.width/2) + ends.shift, y: node.y };
+        case EDGE_RIGHT:
+            return { x: node.x + node.width, y: node.y + Math.round(node.height/2) + ends.shift };
+        case EDGE_BOTTOM:
+            return { x: node.x + Math.round(node.width/2) + ends.shift, y: node.y + node.height };
+        case EDGE_LEFT:
+            return { x: node.x, y : node.y + Math.round(node.height/2) + ends.shift };
+        default: 
+            return null;
+    }
+}
+
+export const isConnectorNear = (node, cid) =>{
+    return cid.x > node.x - EDGE_CONNECTION_WIDTH && cid.x < node.x + node.width + EDGE_CONNECTION_WIDTH
+        && cid.y > node.y - EDGE_CONNECTION_WIDTH && cid.y < node.y + node.height + EDGE_CONNECTION_WIDTH
+   
 }

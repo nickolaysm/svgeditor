@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {evalConnectorCoordByEdge} from '../utils'
+import {evalConnectorCoordByEdge, getEndsCoordinate} from '../utils'
 
 export default class Node extends Component {
 
@@ -33,10 +33,25 @@ export default class Node extends Component {
   
   createConnectorEnd(){
     if(! this.props.showConnectorEndOnEdge) return null;
-    var cid = this.calculateConnectorEndCoord({x: this.state.x, y: this.state.y, width: this.state.width, height: this.state.height}, this.props.showConnectorEndOnEdge);
+    var cid = this.calculateConnectorEndCoord(this.getNode(), this.props.showConnectorEndOnEdge);
     return (
       <circle cx={cid.x} cy={cid.y} r={5} fill='blue'/>
     );
+  }
+  
+  getNode(){
+    return {x: this.state.x, y: this.state.y, width: this.state.width, height: this.state.height};
+  }
+  
+  /**
+   * Отображаем возможные места для подключения коннекторов 
+   */
+  showConnectorEnd(){
+    if(! this.props.showConnectorEnd ) return null;
+    return this.props.visibleConnectorEnd.map(ends => {
+      var cid = getEndsCoordinate(this.getNode(), ends);
+      return <circle cx={cid.x} cy={cid.y} r={3} fill='blue'/>
+    });
   }
 
   render() {
@@ -49,6 +64,7 @@ export default class Node extends Component {
     var headerColor = this.props.selected ? 'red' : 'white';
     
     var connectorEnd = this.createConnectorEnd();
+    
     return (
       <svg ref='svg' onMouseDown={::this.mouseDown}>
         <rect fill={'blue'} fillOpacity={0.5} x={this.state.x} y={this.state.y} width={width} height={height} rx='10' ry='10'/>
@@ -56,6 +72,7 @@ export default class Node extends Component {
         <line x1={this.state.x} y1={this.state.y+headerHeight} x2={this.state.x+width} y2={this.state.y+headerHeight} style={{stroke:'rgb(255,255,255)',strokeWidth:'2'}} />
         <text textAnchor={'middle'} fill={'white'} x={this.state.x+width/2} y={this.state.y+baseShift}>{this.state.value}</text>
         {connectorEnd}
+        {this.showConnectorEnd()}
       </svg>
     )
   }

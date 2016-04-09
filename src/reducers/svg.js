@@ -1,7 +1,7 @@
 import _ from "lodash"
 import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
 import {initConnectors} from '../utils'
-import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT /*, EDGE_RIGHT*/} from '../const/connectors'
+import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 
 const initState = {
     moveMode: false,
@@ -9,11 +9,11 @@ const initState = {
     selected: {id:1, type:"NODE", tail: null},
     switchX: undefined,
     switchY: undefined,
-    //{id:"Уникальный идентификаотр узла", cord:"Координаты верхнего левого угла", width:"Ширина узла", height:"Высота узла"},
+    //{id:"Уникальный идентификаотр узла", cord:"Координаты верхнего левого угла", width:"Ширина узла", height:"Высота узла", visibleConnectorEnd:[{edge:EDGE_BOTTOM, shift: 0}]},
     nodes: [
-         {id:0, x:10 , y: 10,  width: 120, height:100, caption: 'Узел 0', value: 'Статус'}
-        ,{id:1, x:270 , y: 70,  width: 120, height:100, caption: 'Узел 1', value: 'Статус'}
-        ,{id:2, x:50 , y: 200, width: 120, height:100, caption: 'Узел 2', value: 'Статус'}
+         {id:0, x:10 , y: 10,  width: 120, height:100, caption: 'Узел 0', value: 'Статус', showConnectorEnd: false, visibleConnectorEnd:[{edge:EDGE_BOTTOM, shift: 0}, {edge:EDGE_RIGHT, shift: 0}]}
+        ,{id:1, x:270 , y: 70,  width: 120, height:100, caption: 'Узел 1', value: 'Статус', showConnectorEnd: false, visibleConnectorEnd:[{edge:EDGE_TOP, shift: 0}, {edge:EDGE_LEFT, shift: 0}]}
+        ,{id:2, x:50 , y: 200, width: 120, height:100, caption: 'Узел 2', value: 'Статус', showConnectorEnd: false, visibleConnectorEnd:[{edge:EDGE_TOP, shift: 0}, {edge:EDGE_RIGHT, shift: 0}]}
     ],
     /*
     connectors:{
