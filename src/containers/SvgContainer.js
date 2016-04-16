@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
-import Node from './Node'
+//import Node from './Node'
+import ImNode from './ImNode'
 import Connector from './Connector'
 import { connect } from 'react-redux'
 import { selectNode, startMove, stopMove, mouseMove } from '../actions'
+
 //import {DevTools} from './DevTools'
 
 class Svg extends Component {
@@ -22,32 +24,59 @@ class Svg extends Component {
     var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
     this.props.mouseMove(loc.x, loc.y);
   }
-
+  
+  componentWillMount(){
+    
+  }
+  
+  componentWillReceiveProps(){
+    //this.setState({nodes: nextProps.nodes.toObject()})  
+  }
 
   render() {    
+    console.log('this.props',this.props, 'this.props.nodes.toArray()', this.props.nodes.toArray());
     //console.log('render SVG');
     var nodes = this.props.nodes.map(node =>
-        //<Node key={node.id} id={node.id} x={node.x} y={node.y} caption={node.caption} value={node.value} width={node.width} height={node.height} selected={this.props.selected.type == "NODE" && this.props.selected.id === node.id} onSelect={this.props.onSelect} startMove={this.props.startMove}/>);
-        <Node key={node.id} {...node} selected={this.props.selected.type == "NODE" && this.props.selected.id === node.id} onSelect={this.props.onSelect} startMove={this.props.startMove}/>);
-    //var connectors = this.props.connectors.map(connector =>
-    //    <Connector key={connector.id} id={connector.id}
-    //               x1={this.props.nodes[connector.node1.id].x} y1={this.props.nodes[connector.node1.id].y}
-    //               x2={this.props.nodes[connector.node2.id].x} y2={this.props.nodes[connector.node2.id].y}
-    //               onSelect={this.props.onSelect} startMove={this.props.startMove}/>);
-    var connectors = this.props.connectors.map(connector =>{
-        //console.log("+++++++ connector", connector);
-        return (<Connector key={connector.id} id={connector.id}
-                   x1={connector.cid1.x} y1={connector.cid1.y}
-                   x2={connector.cid2.x} y2={connector.cid2.y}
-                   onSelect={this.props.onSelect} startMove={this.props.startMove}/>)
-    });
+        <ImNode key={node.get('id')} 
+            node={node} 
+            connectorEnd={this.props.connectorEnd.filter( end => end.get('node')==node.get('id') )} 
+            selected={this.props.selected.get('type') == "NODE" && this.props.selected.get('id') === node.get('id')} 
+            onSelect={this.props.onSelect} 
+            startMove={this.props.startMove} />);
 
+    // var connectorEnds = this.props.connectorEnd.map( end => {
+    //   var node = this.props.nodes.filter( node => node.get('id') == end.get('node') );
+    //   console.log('find node for connectorEnds',node.toJS())
+    //   return <ConnectorEnd end={end} node={node.get(0)}/>
+    // });
+    
+    var connectors = this.props.connectors.map(connector =>{
+      var end1 = null;
+      var end2 = null;
+      this.props.connectorEnd.forEach( end => {
+        if(end.get('id') == connector.getIn(['end1','connectorEnd']))
+          end1 = end
+        else if(end.get('id') == connector.getIn(['end2','connectorEnd']))
+          end2 = end
+      })
+      var node1 = null;
+      var node2 = null;
+      this.props.nodes.forEach( node => {
+        if(node.get('id') == end1.get('node'))
+          node1 = node
+        else if(node.get('id') == end2.get('node'))
+          node2 = node
+      })
+      
+      return <Connector connector={connector} end1={end1} end2={end2} node1={node1} node2={node2}/>
+    });
+        
     var style = {WebkitUserSelect: 'none',  userSelect: 'none'};
     return (
-      <div style={{padding:0, margin:0, bodredWidth:0}}>
-        <svg  ref="svg" width='500px' height='500px' onMouseDown={::this.mouseDown} onMouseUp={::this.mouseUp} onMouseMove={::this.mouseMove} style={style}>
-          {connectors}
+      <div style={{padding:0, margin:0, bordedWidth:0}}>
+        <svg  ref='svg' width='600px' height='600px' onMouseDown={::this.mouseDown} onMouseUp={::this.mouseUp} onMouseMove={::this.mouseMove} style={style}>
           {nodes}
+          {connectors}
         </svg>
       </div>
     )
@@ -56,11 +85,12 @@ class Svg extends Component {
 }
 
 const mapStateToProps = (state) => {
-  //console.log('state', state);
+  console.log('SVG Container state', state);
   return {
-    nodes: state.svg.nodes,
-    connectors: state.svg.connectors,
-    selected: state.svg.selected
+    nodes: state.svgImmutable.get('nodes'),
+    connectors: state.svgImmutable.get('connectors'),
+    selected: state.svgImmutable.get('selected'),
+    connectorEnd: state.svgImmutable.get('connectorEnd')
   }
 }
 

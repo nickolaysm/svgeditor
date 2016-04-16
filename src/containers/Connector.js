@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import {computeEndLocation} from '../utils'
 
 const SELECT_DISTANCE = 20
 
@@ -9,6 +10,19 @@ export default class Connector extends Component {
         this.state = {width: 2, edge:null};
     }
 
+    createStateObject(connector, end1, end2, node1, node2){
+        var end1Loc = computeEndLocation(end1.get('edge'), end1.get('shiftLoc').toJS(), node1.get('loc').toJS(), node1.get('width'), node1.get('height') );
+        var end2Loc = computeEndLocation(end2.get('edge'), end2.get('shiftLoc').toJS(), node2.get('loc').toJS(), node2.get('width'), node2.get('height') );
+        return {...connector.toJS(), end1:end1Loc, end2:end2Loc}
+    }
+    
+    componentWillMount(){
+        this.setState(this.createStateObject(this.props.connector, this.props.end1, this.props.end2, this.props.node1, this.props.node2))  
+    }
+    
+    componentWillReceiveProps(nextProps){
+        this.setState(this.createStateObject(nextProps.connector, nextProps.end1, nextProps.end2, nextProps.node1, nextProps.node2))
+    }
 
     handleClick(){
         console.log('===========Handle line click');
@@ -67,18 +81,12 @@ export default class Connector extends Component {
 
   
     render() {
-        console.log('+++ connector render', this.props.x1, this.props.y1, this.props.x2, this.props.y2);
-        var circle = null;
-        //if(this.state.edge != null)
-        //    circle = this.state.edge == 1
-        //        ? <circle cx={this.props.x1} cy={this.props.y1} r={SELECT_DISTANCE} fill='blue'/>
-        //        : <circle cx={this.props.x2} cy={this.props.y2} r={SELECT_DISTANCE} fill='blue'/>;
+        console.log('+++ connector render', this.state.end1, this.state.end2);
 
         return (
           <svg ref='svg'>
-              {circle}
-            <line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.props.x1} y1={this.props.y1} x2={this.props.x2} y2={this.props.y2} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
-            <line onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.props.x1} y1={this.props.y1} x2={this.props.x2} y2={this.props.y2} style={{stroke:'rgb(255, 0,0)',strokeWidth:this.state.width}} />
+            <line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
+            <line onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{stroke:'rgb(255, 0,0)',strokeWidth:this.state.width}} />
           </svg>
         )
     }

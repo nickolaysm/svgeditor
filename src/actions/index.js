@@ -1,7 +1,7 @@
-import { initConnectors, evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes, isConnectorNear} from '../utils'
+import { /*initConnectors,*/ evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes, isConnectorNear} from '../utils'
 import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
 //import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
-
+import Immutable from 'immutable'
 
 export const selectNode = (nodeId, type, tail, switchX, switchY) => {
     console.log('Action selectNode, switch',nodeId, type, tail, switchX, switchY);
@@ -34,7 +34,7 @@ export const startMove = () =>{
 
 
 function stopMoveChosser(state){
-    if(state.selected.type == "CONNECTOR"){
+    if(state.get('selected').get('type') == "CONNECTOR"){
         var result = checkConnectorsOnDisconnect(state);
         if(result == null){
             return {type: CANCEL_MOVE}
@@ -53,15 +53,15 @@ export const stopMove = () =>{
   return (dispatcher, getState) => {
 
       console.log("Action stop")
-      dispatcher( stopMoveChosser(getState().svg) );
+      dispatcher( stopMoveChosser(getState().svgImmutable) );
   }
 }
 
 export const mouseMove = (mouseX, mouseY) => {
     return (dispatcher, getState) => {
 
-        var state = getState().svg;
-        if(!state.moveMode) return;
+        var state = getState().svgImmutable;
+        if(!state.get('moveMode')) return;
 
         //определяем расстояние до первого коннектора
         //var dist = distancePointSegment(mouseX, mouseY, state.connectors[0].cid1.x, state.connectors[0].cid1.y, state.connectors[0].cid2.x, state.connectors[0].cid2.y);
@@ -69,17 +69,16 @@ export const mouseMove = (mouseX, mouseY) => {
         //console.log('state.moveMode', state.moveMode);
 
 
-        if (state.selected.type == "NODE"){
-            console.log("mouse Move, node select, ", mouseX, mouseY);
-            let nodes = state.nodes.map(node => {
-                if (node.id == state.selected.id) {
-                    node.x = mouseX - state.switchX;
-                    node.y = mouseY - state.switchY;
+        if (state.getIn(['selected','type']) == "NODE"){
+            console.log("mouse Move, node select, ", mouseX, mouseY, state.getIn(['shiftLoc','x']), state.getIn(['shiftLoc','y']));
+            let nodes = state.get('nodes').map(node => {
+                if ( node.get('id') == state.getIn(['selected','id']) ){
+                    return node.set('loc', Immutable.Map({x:mouseX - state.getIn(['shiftLoc','x']), y:mouseY - state.getIn(['shiftLoc','y'])}) );
                 }
                 return node;
             });
-            let connectors = initConnectors(state);
-            return dispatcher({type: MOVE_NODE, nodes: nodes, connectors: connectors})
+            //let connectors = initConnectors(state);
+            return dispatcher({type: MOVE_NODE, nodes: nodes})
         } else if(state.selected.type == "CONNECTOR"){
             console.log("mouse Move, CONNECTOR select, ", mouseX, mouseY);
             var nodes = state.nodes;

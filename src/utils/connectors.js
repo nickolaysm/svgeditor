@@ -300,3 +300,34 @@ export const isConnectorNear = (node, cid) =>{
         && cid.y > node.y - EDGE_CONNECTION_WIDTH && cid.y < node.y + node.height + EDGE_CONNECTION_WIDTH
    
 }
+
+/**
+ * Вычисление положения точки присоединения коннекторов 
+ * @param edge грань ноды от, которой нужно отсчитывать точку
+ * @param shiftLoc смещение относительно центра грани
+ * @param nodeLoc положение ноды (верзний левый угол)
+ * @param nodeWidth ширина ноды
+ * @param nodeHeight высота ноды
+ */
+export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeight) => {
+    var endLoc = {x:0, y:0};
+    switch(edge){
+        case EDGE_TOP:
+            endLoc = { x: nodeLoc.x + Math.round(nodeWidth/2), y: nodeLoc.y };
+            break;
+        case EDGE_RIGHT:
+            endLoc = { x: nodeLoc.x + nodeWidth,               y: nodeLoc.y + Math.round(nodeHeight/2) };
+            break;
+        case EDGE_BOTTOM:
+            endLoc = { x: nodeLoc.x + Math.round(nodeWidth/2), y: nodeLoc.y + nodeHeight };
+            break;
+        case EDGE_LEFT:
+            endLoc = { x: nodeLoc.x,                           y : nodeLoc.y + Math.round(nodeHeight/2) };
+            break;
+        default: 
+            return {x:0, y:0};
+    }
+    endLoc.x = endLoc.x + shiftLoc.x;
+    endLoc.y = endLoc.y + shiftLoc.y;
+    return endLoc;
+}

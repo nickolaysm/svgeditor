@@ -70,9 +70,9 @@ class Editor extends Component {
 const mapStateToProps = (state) => {
   //console.log('state', state);
   return {
-    nodes: state.svg.nodes,
-    connectors: state.svg.connectors,
-    selected: state.svg.selected
+    nodes: state.svgImmutable.get('nodes'),
+    connectors: state.svgImmutable.get('connectors'),
+    selected: state.svgImmutable.get('selected')
   }
 }
 

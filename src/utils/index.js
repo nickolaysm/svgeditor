@@ -1,4 +1,4 @@
-import {evalConnectors, initConnectors, evalConnector, distancePointSegment, checkConnectorsOnDisconnect, evalConnectorCoordByEdge, clearNodes, getEndsCoordinate, isConnectorNear} from './connectors'
+import {evalConnectors, initConnectors, evalConnector, distancePointSegment, checkConnectorsOnDisconnect, evalConnectorCoordByEdge, clearNodes, getEndsCoordinate, isConnectorNear, computeEndLocation} from './connectors'
 
 export {evalConnectors}
 export {initConnectors}
@@ -9,3 +9,4 @@ export {evalConnectorCoordByEdge}
 export {clearNodes}
 export {getEndsCoordinate}
 export {isConnectorNear}
+export {computeEndLocation}
