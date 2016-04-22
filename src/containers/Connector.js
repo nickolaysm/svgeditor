@@ -64,9 +64,9 @@ export default class Connector extends Component {
         var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
 
         console.log("mouseEnter()");
-        if(this.distance(this.props.x1, this.props.y1, loc.x, loc.y) < SELECT_DISTANCE){
+        if(this.distance(this.state.end1.x, this.state.end1.y, loc.x, loc.y) < SELECT_DISTANCE){
             this.setState({width: 4, edge: 1});
-        } else if(this.distance(this.props.x2, this.props.y2, loc.x, loc.y) < SELECT_DISTANCE) {
+        } else if(this.distance(this.state.end2.x, this.state.end2.y, loc.x, loc.y) < SELECT_DISTANCE) {
             this.setState({width: 4, edge: 2});
         } else {
             this.setState({width: 2, edge:null});
@@ -75,13 +75,13 @@ export default class Connector extends Component {
     }
 
     mouseOut(){
-      console.log("mouseLeave()");
+      //console.log("mouseLeave()");
       this.setState({width: 2, edge:null});
     }
 
   
     render() {
-        console.log('+++ connector render', this.state.end1, this.state.end2);
+        //console.log('+++ connector render', this.state.end1, this.state.end2);
 
         return (
           <svg ref='svg'>

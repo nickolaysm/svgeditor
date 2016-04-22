@@ -19,15 +19,20 @@ export default class ConnectorEnd extends Component {
     this.setState(this.createStateObject(nextProps.end, nextProps.node))
   }
 
+  shouldComponentUpdate(nextProps){
+    return nextProps.end != this.props.end;
+  }
+  
   render() {
     console.log('===== render ConnectorEnd', this.state);
-    var opacity = 0.5;
+    var opacity = this.state.opacity;
     var crossSize = 4;
+    if(! this.state.visible) return null;
     //Рисуем кросс крест
     return (
       <svg ref='svg'>
-        <line x1={this.state.loc.x-crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x+crossSize} y2={this.state.loc.y+crossSize} fillOpacity={opacity} style={{stroke:'rgb(0,255,255)',strokeWidth:'1'}} />
-        <line x1={this.state.loc.x+crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x-crossSize} y2={this.state.loc.y+crossSize} fillOpacity={opacity} style={{stroke:'rgb(0,255,255)',strokeWidth:'1'}} />
+          <line x1={this.state.loc.x-crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x+crossSize} y2={this.state.loc.y+crossSize} strokeOpacity={opacity} style={{stroke:'rgb(0,150,150)',strokeWidth:'1'}} />
+          <line x1={this.state.loc.x+crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x-crossSize} y2={this.state.loc.y+crossSize} strokeOpacity={opacity} style={{stroke:'rgb(0,150,150)',strokeWidth:'1'}} />
       </svg>
     )
   }

@@ -13,19 +13,19 @@ export const INIT_DATA = {
     //Узлы/вершины
     nodes:[
         //{id:"Уникальный идентификаотр узла", cord:"Координаты верхнего левого угла", width:"Ширина узла", height:"Высота узла", ConnectorEnd:[{edge:EDGE_BOTTOM, shiftX: 0, shiftY:0}]},
-        {id: 0, loc:{x:10 , y: 10}, width: 120, height:100, caption: 'Узел 0', value: 'Статус', showConnectorEnd: false},
-        {id: 1, loc:{x:270 , y: 70}, width: 120, height:100, caption: 'Узел 1', value: 'Статус', showConnectorEnd: false},
-        {id: 2, loc:{x:50 , y: 200}, width: 120, height:100, caption: 'Узел 2', value: 'Статус', showConnectorEnd: false}
+        {id: 0, loc:{x:10 , y: 10}, width: 120, height:100, caption: 'Узел 0', value: 'Статус'},
+        {id: 1, loc:{x:270 , y: 70}, width: 120, height:100, caption: 'Узел 1', value: 'Статус'},
+        {id: 2, loc:{x:50 , y: 200}, width: 120, height:100, caption: 'Узел 2', value: 'Статус'}
     ],
     //Точки для присоединения, каждая точка принадлежит какой-то node и одной из ее граней
     //Так же можно указать смещение по оси X и Y оносительно центра грани. Если shiftX: 0, shiftY:0 - то точка будет находится ровно по середине грани
     connectorEnd:[
-        {id:0, node: 0, edge:EDGE_BOTTOM, shiftLoc:{x: 0, y:0} }, 
-        {id:1, node: 0, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:0} },
-        {id:2, node: 1, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0} }, 
-        {id:3, node: 1, edge:EDGE_LEFT,   shiftLoc:{x: 0, y:0} },
-        {id:4, node: 2, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0} }, 
-        {id:5, node: 2, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:0} }
+        {id:0, node: 0, edge:EDGE_BOTTOM, shiftLoc:{x: 0, y:0}, visible: true , opacity: 1.0 }, 
+        {id:1, node: 0, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:0}, visible: true , opacity: 1.0 },
+        {id:2, node: 1, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 }, 
+        {id:3, node: 1, edge:EDGE_LEFT,   shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 },
+        {id:4, node: 2, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 }, 
+        {id:5, node: 2, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 }
     ],
     //Линии указывающие связь между узлами/вершинами
     //end1 - описание к чему привязан один из концов коннектора. 

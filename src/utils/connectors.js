@@ -331,3 +331,25 @@ export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeigh
     endLoc.y = endLoc.y + shiftLoc.y;
     return endLoc;
 }
+
+/**
+ * Расстояние от точки до центра ноды.
+ * По хорошему нужно бы переделать на расстояние до граней ноды
+ */
+export const distaneToNode = (x, y, node) => {
+    var nodeObj = node.toJS();
+    var distanceToCenter = distanceBetweenPoints( x, y, nodeObj.loc.x + Math.abs(nodeObj.width/2), nodeObj.loc.y + Math.abs(nodeObj.height/2) );
+    return distanceToCenter;
+}
+
+/**
+ * Вычисляем видимость или невидимость точек присоединения коннекторов.
+ * Точки относящиеся к ноде становяться постепенно видимыми в зависимости от приближения к ноде мышки
+ */
+export const computeEndLocationVisibility = (mouseX, mouseY, state) => {
+    //Вычисляем расстояние от мышки до ноды.
+    return state.get('nodes').map(node => {
+        return {nodeId: node.get('id'), distance: distaneToNode(mouseX, mouseY, node)}
+    }).toJS();
+    
+}

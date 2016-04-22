@@ -1,5 +1,5 @@
-import { /*initConnectors,*/ evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes, isConnectorNear} from '../utils'
-import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
+import { /*initConnectors,*/ evalConnector, /*distancePointSegment,*/ checkConnectorsOnDisconnect, clearNodes, isConnectorNear, computeEndLocationVisibility} from '../utils'
+import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION} from '../const/actions'
 //import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import Immutable from 'immutable'
 
@@ -59,8 +59,9 @@ export const stopMove = () =>{
 
 export const mouseMove = (mouseX, mouseY) => {
     return (dispatcher, getState) => {
-
+        
         var state = getState().svgImmutable;
+        dispatcher({type: END_LOCATION, distances: computeEndLocationVisibility(mouseX, mouseY, state) });
         if(!state.get('moveMode')) return;
 
         //определяем расстояние до первого коннектора

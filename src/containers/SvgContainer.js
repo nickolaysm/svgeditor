@@ -4,6 +4,7 @@ import ImNode from './ImNode'
 import Connector from './Connector'
 import { connect } from 'react-redux'
 import { selectNode, startMove, stopMove, mouseMove } from '../actions'
+import ConnectorEnd from './ConnectorEnd'
 
 //import {DevTools} from './DevTools'
 
@@ -44,11 +45,11 @@ class Svg extends Component {
             onSelect={this.props.onSelect} 
             startMove={this.props.startMove} />);
 
-    // var connectorEnds = this.props.connectorEnd.map( end => {
-    //   var node = this.props.nodes.filter( node => node.get('id') == end.get('node') );
-    //   console.log('find node for connectorEnds',node.toJS())
-    //   return <ConnectorEnd end={end} node={node.get(0)}/>
-    // });
+    var connectorEnds = this.props.connectorEnd.map( end => {
+      var node = this.props.nodes.filter( node => node.get('id') == end.get('node') );
+      console.log('find node for connectorEnds',node.toJS())
+      return <ConnectorEnd key={end.get('id')} end={end} node={node.get(0)}/>
+    });
     
     var connectors = this.props.connectors.map(connector =>{
       var end1 = null;
@@ -68,7 +69,7 @@ class Svg extends Component {
           node2 = node
       })
       
-      return <Connector connector={connector} end1={end1} end2={end2} node1={node1} node2={node2}/>
+      return <Connector key={connector.get('id')} connector={connector} end1={end1} end2={end2} node1={node1} node2={node2} onSelect={this.props.onSelect}/>
     });
         
     var style = {WebkitUserSelect: 'none',  userSelect: 'none'};
@@ -76,6 +77,7 @@ class Svg extends Component {
       <div style={{padding:0, margin:0, bordedWidth:0}}>
         <svg  ref='svg' width='600px' height='600px' onMouseDown={::this.mouseDown} onMouseUp={::this.mouseUp} onMouseMove={::this.mouseMove} style={style}>
           {nodes}
+          {connectorEnds}
           {connectors}
         </svg>
       </div>

@@ -1,12 +1,21 @@
 //import _ from "lodash"
 import Immutable from 'immutable'
- import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE} from '../const/actions'
+ import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION} from '../const/actions'
 // import {initConnectors} from '../utils'
 // import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import {INIT_DATA} from '../const/data'
 
 const initState = Immutable.fromJS(INIT_DATA);
 console.log("Immutable.fromJS(INIT_DATA)",initState);
+const min = 70;
+const max = 200;
+
+const computeOpacity = (distance) => {
+    if(distance <= min ) return 1.0
+    else if(distance > max) return 0
+    else return (max - distance)/(max - min);
+}
+
 
 const svgReducer = (state = initState, action) => {
     console.log('reducer type', action.type);
@@ -38,6 +47,24 @@ const svgReducer = (state = initState, action) => {
         console.log('reducer moveMode', false, "state.selected.type", state.getIn(['selected','type']) );
         return state.set('moveMode', false).set('oldState', null);
         //return {...state, moveMode: false, oldState: undefined};
+    case END_LOCATION:
+        var distances = action.distances.filter(element => element.distance < max );
+        console.log("=== distances",distances);
+        var newEnds = state.get('connectorEnd').map(end => {
+            for(var i=0; i<distances.length; i++){
+                console.log("=== i", i, distances[i]);
+                if(distances[i].nodeId == end.get('node')){
+                    var opacity = computeOpacity(distances[i].distance );
+                    if(!end.get('visible') || end.get('opacity') != opacity )
+                        return end.set('visible', true).set('opacity', opacity)
+                }
+            }
+            
+            if(end.get('visible'))
+                return end.set('visible', false).set('opacity', 0);
+            return end;
+        });
+        return state.set('connectorEnd', newEnds);
     case MOVE_NODE:
         console.log('reducer MOVE_NODE',action);
         return state.set('nodes', action.nodes);

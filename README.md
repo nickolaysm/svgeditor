@@ -4,6 +4,6 @@
 Версия переделанная на Immutable.js
 
 info to commit: 
-git commit -m "еще поправил readme"
+git commit -am "еще поправил readme"
 git push -u origin master
 
