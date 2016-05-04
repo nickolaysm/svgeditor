@@ -22,6 +22,7 @@ export const INIT_DATA = {
     connectorEnd:[
         {id:0, node: 0, edge:EDGE_BOTTOM, shiftLoc:{x: 0, y:0}, visible: true , opacity: 1.0 }, 
         {id:1, node: 0, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:0}, visible: true , opacity: 1.0 },
+        {id:6, node: 0, edge:EDGE_RIGHT,  shiftLoc:{x: 0, y:10}, visible: true , opacity: 1.0 },
         {id:2, node: 1, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 }, 
         {id:3, node: 1, edge:EDGE_LEFT,   shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 },
         {id:4, node: 2, edge:EDGE_TOP,    shiftLoc:{x: 0, y:0}, visible: false, opacity: 0.0 }, 

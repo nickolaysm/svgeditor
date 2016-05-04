@@ -42,21 +42,23 @@ const svgReducer = (state = initState, action) => {
           return state.get('oldState');
     case STOP_MOVE_CONNECTOR:
         //return {...state, moveMode: false, connectors: action.connectors, oldState: undefined};
-        return {...state, nodes: action.nodes, moveMode: false, oldState: undefined};
+        return state.set('moveMode', false).set('oldState', undefined)
     case STOP_MOVE:
         console.log('reducer moveMode', false, "state.selected.type", state.getIn(['selected','type']) );
         return state.set('moveMode', false).set('oldState', null);
         //return {...state, moveMode: false, oldState: undefined};
     case END_LOCATION:
         var distances = action.distances.filter(element => element.distance < max );
-        console.log("=== distances",distances);
+        //console.log("=== distances",distances);
         var newEnds = state.get('connectorEnd').map(end => {
             for(var i=0; i<distances.length; i++){
-                console.log("=== i", i, distances[i]);
+                //console.log("=== i", i, distances[i]);
                 if(distances[i].nodeId == end.get('node')){
                     var opacity = computeOpacity(distances[i].distance );
                     if(!end.get('visible') || end.get('opacity') != opacity )
                         return end.set('visible', true).set('opacity', opacity)
+                    else
+                        return end
                 }
             }
             
@@ -67,10 +69,10 @@ const svgReducer = (state = initState, action) => {
         return state.set('connectorEnd', newEnds);
     case MOVE_NODE:
         console.log('reducer MOVE_NODE',action);
-        return state.set('nodes', action.nodes);
+        return state.set('nodes', action.nodes).set('connectorEnd', action.connectorEnd);
     case MOVE_CONNECTOR:
         //return _.extend({}, state, {nodes: action.nodes}, {connectors: action.connectors});
-        return state;
+        return state.set('connectors', action.connectors);
     case MOUSE_MOVE:
         return state;
     default:

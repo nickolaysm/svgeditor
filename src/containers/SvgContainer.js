@@ -47,7 +47,7 @@ class Svg extends Component {
 
     var connectorEnds = this.props.connectorEnd.map( end => {
       var node = this.props.nodes.filter( node => node.get('id') == end.get('node') );
-      console.log('find node for connectorEnds',node.toJS())
+      //console.log('find node for connectorEnds',node.toJS())
       return <ConnectorEnd key={end.get('id')} end={end} node={node.get(0)}/>
     });
     
@@ -55,21 +55,18 @@ class Svg extends Component {
       var end1 = null;
       var end2 = null;
       this.props.connectorEnd.forEach( end => {
-        if(end.get('id') == connector.getIn(['end1','connectorEnd']))
-          end1 = end
-        else if(end.get('id') == connector.getIn(['end2','connectorEnd']))
-          end2 = end
+        if(end.get('id') == connector.getIn(['end1','connectorEnd'])) end1 = end;
+        if(end.get('id') == connector.getIn(['end2','connectorEnd'])) end2 = end;
       })
+      
       var node1 = null;
       var node2 = null;
       this.props.nodes.forEach( node => {
-        if(node.get('id') == end1.get('node'))
-          node1 = node
-        else if(node.get('id') == end2.get('node'))
-          node2 = node
+        if(node.get('id') == end1.get('node')) node1 = node;
+        if(node.get('id') == end2.get('node')) node2 = node;
       })
       
-      return <Connector key={connector.get('id')} connector={connector} end1={end1} end2={end2} node1={node1} node2={node2} onSelect={this.props.onSelect}/>
+      return <Connector key={connector.get('id')} startMove={this.props.startMove} connector={connector} end1={end1} end2={end2} node1={node1} node2={node2} onSelect={this.props.onSelect}/>
     });
         
     var style = {WebkitUserSelect: 'none',  userSelect: 'none'};

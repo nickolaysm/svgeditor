@@ -2,7 +2,7 @@ import _ from "lodash"
 import {EDGE_CONNECTION_WIDTH} from '../const/connectors'
 import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 
-const distanceBetweenPoints = (x1,y1, x2,y2) => Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
+export const distanceBetweenPoints = (x1,y1, x2,y2) => Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
 /**
  *
  * @param x точка от которой определяем расстояние до прямой
@@ -39,13 +39,12 @@ const distanceBetweenPoints = (x1,y1, x2,y2) => Math.sqrt( (x1-x2)*(x1-x2) + (y1
  * Если есть хоть один отсоединенный коннектор возвращаем null, иначе возвращаем коннекторы
  * @param state
  */
-export const checkConnectorsOnDisconnect = state => {
-    var connectors = state.connectors.filter(connector => {
-        return connector.node1.state == "DISCONNECTED" || connector.node2.state == "DISCONNECTED" ;
+export const hasDisconnected = state => {
+    var connectors = state.get('connectors').filter(connector => {
+        return connector.getIn(['end1','state']) == "DISCONNECTED" || connector.getIn(['end2','state']) == "DISCONNECTED" ;
     })
     
-    console.log("state.connectors", state.connectors);
-    return ( connectors != null && connectors.length ) ? null : state.connectors;
+    return ( connectors != null && connectors.size > 0);
 }
 
 /**
@@ -280,19 +279,8 @@ export const clearNodes = (nodes) => {
 /**
  * Высчитываем координату для возможного места присоединения коннектора 
  */
-export const getEndsCoordinate = (node, ends) => {
-    switch(ends.edge){
-        case EDGE_TOP:
-            return { x: node.x + Math.round(node.width/2) + ends.shift, y: node.y };
-        case EDGE_RIGHT:
-            return { x: node.x + node.width, y: node.y + Math.round(node.height/2) + ends.shift };
-        case EDGE_BOTTOM:
-            return { x: node.x + Math.round(node.width/2) + ends.shift, y: node.y + node.height };
-        case EDGE_LEFT:
-            return { x: node.x, y : node.y + Math.round(node.height/2) + ends.shift };
-        default: 
-            return null;
-    }
+export const getEndCoordinate = (node, end) => {
+    return computeEndLocation(end.edge, end.shiftLoc, node.loc, node.width, node.height);
 }
 
 export const isConnectorNear = (node, cid) =>{

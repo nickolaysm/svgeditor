@@ -5,9 +5,10 @@ import {computeEndLocation} from '../utils'
 export default class ConnectorEnd extends Component {
 
   createStateObject(end, node){
-    console.log("ConnectorEnd, createStateObject ", node.get('loc').toJS());
+    //console.log("ConnectorEnd, createStateObject ", node.get('loc').toJS());
     var data = end.toJS();
-    var endLoc = computeEndLocation(data.edge, data.shiftLoc, node.get('loc').toJS(), node.get('width'), node.get('height') )
+    var endLoc = computeEndLocation(data.edge, data.shiftLoc, node.get('loc').toJS(), node.get('width'), node.get('height') );
+    console.log("========== ConnectorEnd, createStateObject ", endLoc);
     return {...data,  loc: endLoc};
   }
   
@@ -20,14 +21,16 @@ export default class ConnectorEnd extends Component {
   }
 
   shouldComponentUpdate(nextProps){
+    console.log("%cConnector shouldComponentUpdate","color:red",nextProps.end != this.props.end);
     return nextProps.end != this.props.end;
   }
   
   render() {
-    console.log('===== render ConnectorEnd', this.state);
+    //console.log('===== render ConnectorEnd', this.state);
     var opacity = this.state.opacity;
     var crossSize = 4;
     if(! this.state.visible) return null;
+    
     //Рисуем кросс крест
     return (
       <svg ref='svg'>

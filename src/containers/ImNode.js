@@ -39,7 +39,7 @@ export default class ImNode extends Component {
     var headerShift = 20;
     var headerHeight = headerShift + 10;
     var baseShift = headerHeight + 25;
-    var headerColor = this.props.selected ? 'red' : 'white';
+    var headerColor = this.props.selected ? 'orange' : 'white';
     
     console.log("ImNode", this.state.loc.x, this.props.node.get('loc').get('x'), this.state.loc.y, this.props.node.get('loc').get('y'));
     

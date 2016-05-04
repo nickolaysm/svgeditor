@@ -8,3 +8,5 @@ export const EDGE_RIGHT  = "RIGHT";
 
 export const CONNECTED = "CONNECTED";
 export const DISCONNECTED = "DISCONNECTED";
+
+export const SELECT_DISTANCE = 20;
