@@ -1,4 +1,8 @@
-import {distanceBetweenPoints, evalConnectors, initConnectors, evalConnector, distancePointSegment, hasDisconnected, evalConnectorCoordByEdge, clearNodes, getEndCoordinate, isConnectorNear, computeEndLocation, computeEndLocationVisibility} from './connectors'
+import {distanceBetweenPoints, evalConnectors, initConnectors,
+        evalConnector, distancePointSegment, hasDisconnected,
+        evalConnectorCoordByEdge, clearNodes, getEndCoordinate,
+        isConnectorNear, computeEndLocation, computeEndLocationVisibility,
+        getEndCoordinateByID} from './connectors'
 
 export {distanceBetweenPoints}
 export {evalConnectors}
@@ -12,3 +16,4 @@ export {getEndCoordinate}
 export {isConnectorNear}
 export {computeEndLocation}
 export {computeEndLocationVisibility}
+export {getEndCoordinateByID}

@@ -50,7 +50,7 @@ export default class ImNode extends Component {
 
     return (
       <svg ref='svg' onMouseDown={::this.mouseDown}>
-        <rect fill={baseColor} fillOpacity={0.9} x={this.state.loc.x} y={this.state.loc.y} width={this.state.width} height={this.state.height} rx='10' ry='10'/>
+        <rect fill={baseColor} fillOpacity={0.8} x={this.state.loc.x} y={this.state.loc.y} width={this.state.width} height={this.state.height} rx='10' ry='10'/>
         <text style={{userSelect:'none'}} textAnchor={'middle'} fill={headerColor} x={this.state.loc.x+this.state.width/2} y={this.state.loc.y+headerShift}>{this.state.caption}</text>
         <line x1={this.state.loc.x} y1={this.state.loc.y+headerHeight} x2={this.state.loc.x+this.state.width} y2={this.state.loc.y+headerHeight} style={{stroke:'rgb(255,255,255)',strokeWidth:'2'}} />
         <text textAnchor={'middle'} fill={'white'} x={this.state.loc.x+this.state.width/2} y={this.state.loc.y+baseShift}>{this.state.value}</text>

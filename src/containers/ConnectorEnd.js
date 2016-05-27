@@ -8,7 +8,7 @@ export default class ConnectorEnd extends Component {
     //console.log("ConnectorEnd, createStateObject ", node.get('loc').toJS());
     var data = end.toJS();
     var endLoc = computeEndLocation(data.edge, data.shiftLoc, node.get('loc').toJS(), node.get('width'), node.get('height') );
-    console.log("========== ConnectorEnd, createStateObject ", endLoc);
+    //console.log("========== ConnectorEnd, createStateObject ", endLoc);
     return {...data,  loc: endLoc};
   }
   
@@ -21,7 +21,7 @@ export default class ConnectorEnd extends Component {
   }
 
   shouldComponentUpdate(nextProps){
-    console.log("%cConnector shouldComponentUpdate","color:red",nextProps.end != this.props.end);
+   // console.log("%cConnectorEnd shouldComponentUpdate","color:red",nextProps.end != this.props.end);
     return nextProps.end != this.props.end;
   }
   

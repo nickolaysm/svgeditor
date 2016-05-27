@@ -1,6 +1,6 @@
 //import _ from "lodash"
 import Immutable from 'immutable'
- import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION} from '../const/actions'
+ import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION, SELECT_CONNECTOR, HIGHLIGHT_CONNECTOR} from '../const/actions'
 // import {initConnectors} from '../utils'
 // import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import {INIT_DATA} from '../const/data'
@@ -47,6 +47,10 @@ const svgReducer = (state = initState, action) => {
         console.log('reducer moveMode', false, "state.selected.type", state.getIn(['selected','type']) );
         return state.set('moveMode', false).set('oldState', null);
         //return {...state, moveMode: false, oldState: undefined};
+    case SELECT_CONNECTOR:
+        return state.set('connectors', action.connectors);
+    case HIGHLIGHT_CONNECTOR:
+        return state.set('connectors', action.connectors);
     case END_LOCATION:
         var distances = action.distances.filter(element => element.distance < max );
         //console.log("=== distances",distances);

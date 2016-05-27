@@ -33,9 +33,10 @@ export const INIT_DATA = {
     //state - прикреплен ли конец коннектора или его перетаскивают
     //connectorEnd - идентификатор точки к которой прикреплен коннектор
     //loc - в случае когда state:DISCONNECTED содержит координаты, где сейчас конец коннектора (когда перетаскивают)
+    //canSelected - означает, что мышка достаточно близко, что бы выделить этот объект
     connectors: [
-        {id:0, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 3, loc:null} },
-        {id:1, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 4, loc:null} }
+        {id:0, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 3, loc:null}, highlight: false },
+        {id:1, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 4, loc:null}, highlight: false }
     ]   
 
 }

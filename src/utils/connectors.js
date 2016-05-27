@@ -276,6 +276,45 @@ export const clearNodes = (nodes) => {
     })
 }
 
+
+/**
+ * Найти концевик по его идентификатору.
+ * @param endId идентификатор концевика
+ * @param state полный state в иммутабельном виде
+ * @returns Концевик в иммутабельном виде
+ */
+const getEndByID = (endId, state) => {
+    var ends = state.get('connectorEnd');
+    for(var i=0; i< ends.size; i++) {
+        if (ends.get(i).get('id') == endId) {
+            return ends.get(i);
+        }
+    }
+    return null;
+}
+
+const getNodeByID = (nodeId, state) =>{
+    var nodes = state.get('nodes');
+    for(var i=0; i< nodes.size; i++) {
+        if (nodes.get(i).get('id') == nodeId) {
+            return nodes.get(i);
+        }
+    }
+    return null;
+}
+
+/**
+ * Вычисление координат для концевика
+ * @param endId идетнификатор концевика
+ * @param state иммутабельное состояние всей системы
+ */
+export const getEndCoordinateByID = (endId, state) => {
+    var connectorEnd = getEndByID(endId, state);
+    var node = getNodeByID(connectorEnd.get('node'), state);
+    console.log("getEndCoordinateByID",connectorEnd.toJS(), node.toJS());
+    return getEndCoordinate(node.toJS(), connectorEnd.toJS());
+}
+
 /**
  * Высчитываем координату для возможного места присоединения коннектора 
  */

@@ -11,29 +11,21 @@ export default class Connector extends Component {
     }
 
     createStateObject(connector, end1, end2, node1, node2, state){
-        console.log("connector.get('end1').get('state')",connector.get('end1').get('state'), connector.toJS());
-        console.log("connector.get('end2').get('state')",connector.get('end2').get('state'), connector.toJS());
+        // console.log("connector.get('end1').get('state')",connector.get('end1').get('state'), connector.toJS());
+        // console.log("connector.get('end2').get('state')",connector.get('end2').get('state'), connector.toJS());
         var propName = ["1", "2"];
         var obj = {end1:end1, end2:end2, node1:node1, node2:node2};
-        console.log("obj", obj);
         var locs = propName.map(name =>{
             var endName = "end"+name;
-            console.log("connector.get(endName).get('state')",endName, connector.get(endName).get('state'));            
+            // console.log("connector.get(endName).get('state')",endName, connector.get(endName).get('state'));
             return connector.get(endName).get('state') == "DISCONNECTED" 
                 ? { x: connector.getIn([endName,'loc','x']), y: connector.getIn([endName,'loc','y']) }
                 : computeEndLocation(obj[endName].get('edge'), obj[endName].get('shiftLoc').toJS(), obj["node"+name].get('loc').toJS(), obj["node"+name].get('width'), obj["node"+name].get('height') );
         })
         
-        
-        // var end1Loc = connector.get('end1').get('state') == "DISCONNECTED" 
-        //         ? { x: connector.getIn(['end1','loc','x']), y: connector.getIn(['end1','loc','y']) }
-        //         : computeEndLocation(end1.get('edge'), end1.get('shiftLoc').toJS(), node1.get('loc').toJS(), node1.get('width'), node1.get('height') );
-        // var end2Loc = connector.get('end1').get('state') == "DISCONNECTED" 
-        //         ? { x: connector.getIn(['end2','loc','x']), y: connector.getIn(['end2','loc','y']) }
-        //         : computeEndLocation(end2.get('edge'), end2.get('shiftLoc').toJS(), node2.get('loc').toJS(), node2.get('width'), node2.get('height') );
-        console.log("locs", locs);
-        //return {...connector.toJS(), end1:end1Loc, end2:end2Loc}
-        var arrowKey = state.arrowKey < 10 ? state.arrowKey+1 : 0;
+
+        // console.log("locs", locs);
+        var arrowKey =  state.arrowKey < 10 ? "" + connector.get('id') +state.arrowKey+1 : "0";
         return {...connector.toJS(), end1:locs[0], end2:locs[1], arrowKey: arrowKey}
     }
     
@@ -79,7 +71,8 @@ export default class Connector extends Component {
         }
     }
 
-    mouseOver(e){
+    mouseOver(){
+        /*
         var pt = this.refs.svg.createSVGPoint();
         pt.x = e.clientX; pt.y = e.clientY;
         var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
@@ -92,45 +85,44 @@ export default class Connector extends Component {
         } else {
             this.setState({canDrag: false, width: 2, edge:null});
         }
+        */
 
     }
 
     mouseOut(){
       //console.log("mouseLeave()");
-      this.setState({canDrag: false, width: 2, edge:null});
+      //this.setState({canDrag: false, width: 2, edge:null});
     }
 
-  render() {
+    //TODO: Продумать как производить выделение коннектора
+    render() {
       //console.log('+++ connector render', this.state.end1, this.state.end2);
-      var cursor = this.state.canDrag ? 'copy' : 'default';
-      var stroke = this.state.canDrag ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
-      var arrowColor  = this.state.canDrag ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)'; 
+      var cursor = this.state.highlight  ? 'copy' : 'default';
+      var stroke = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
+      var arrowColor  = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
+      //var width = this.state.selected ? 4 : 2;
       return (
           <svg ref='svg' style={{cursor:cursor}}>
             <defs>
-                <marker id='markerBegin' markerWidth='6' markerHeight='6' refX='-15' refY='2' orient='auto'>
+                <marker id='markerBegin' markerWidth='6' markerHeight='6' refX='-10' refY='2' orient='auto'>
                     <circle cx='2' cy='2' r='2' style={{stroke: 'none', fill:'#000000'}}/>
                 </marker>
-                
-                <marker id='Arrow' key={this.state.arrowKey}
-                       markerWidth='6' markerHeight='6' viewBox='-3 -3 6 6' 
-                       refX='2' refY='0' 
+
+                <marker id={"Arrow"+this.state.id} key={this.state.arrowKey}
+                       markerWidth='6' markerHeight='6' viewBox='-3 -3 6 6'
+                       refX='2' refY='0'
                        markerUnits='strokeWidth' orient='auto'>
                   <polygon key={this.state.arrowKey} points='-1,0 -3,3 3,0 -3,-3' fill={arrowColor}/>
-                </marker>   
-                
-                <marker id='Arrow2' 
-                       markerWidth='6' markerHeight='6' viewBox='-3 -3 6 6' 
-                       refX='2' refY='0' 
-                       markerUnits='strokeWidth' orient='auto'>
-                 <path d='M0,0 L0,6 L9,3 z' fill='#f00' />
-                </marker>    
-            </defs>           
-            <line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
-            <line markerEnd='url(#Arrow)' markerStart='url(#markerBegin)' onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} stroke={stroke} fill={stroke} style={{strokeWidth:this.state.width}} />
+                </marker>
+
+            </defs>
+              {/*<line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} /> */}
+            <line onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
+            <line markerEnd={'url(#Arrow'+this.state.id+')'} markerStart='url(#markerBegin)' onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} stroke={stroke} fill={stroke} style={{strokeWidth:'2px'}} />
           </svg>
       )
-  }
-
+    }
 
 }
+
+//<line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />

@@ -6,7 +6,7 @@ import SvgContainer from '../containers/SvgContainer'
 const App = () => (
   <div>
     <SvgContainer/>
-    
+
   </div>
 )
 //<DevTools/>

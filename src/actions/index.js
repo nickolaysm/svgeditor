@@ -1,9 +1,10 @@
-import { /*initConnectors,*/ /*distancePointSegment,*/ hasDisconnected, computeEndLocationVisibility, getEndCoordinate, distanceBetweenPoints} from '../utils'
-import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION} from '../const/actions'
+import { /*initConnectors,*/ /*distancePointSegment,*/ hasDisconnected, computeEndLocationVisibility, getEndCoordinate, distanceBetweenPoints, getEndCoordinateByID} from '../utils'
+import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION, HIGHLIGHT_CONNECTOR} from '../const/actions'
 //import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import Immutable from 'immutable'
 //import _ from 'lodash'
 import {SELECT_DISTANCE} from '../const/connectors'
+import {dist_point_to_segment} from '../utils/math'
 
 export const selectNode = (nodeId, type, tail, switchX, switchY) => {
     console.log('Action selectNode, switch',nodeId, type, tail, switchX, switchY);
@@ -91,12 +92,73 @@ const getNewConnectorState = (endRef, nearestEnd) => {
     
 }
 
+/**
+ * Рассчитываем выделен ли сейчас коннекшн или нет, на основании близости мыши к нему
+ * @param x положение мыши
+ * @param y положение мыши
+ * @param state
+ */
+// const computeConnectorSelection = (x, y, state) =>{
+//     console.group("%ccomputeConnectorSelection","color:blue");
+//     var connectors = state.get('connectors').map(connector => {
+//         var end1Loc = getEndCoordinateByID(connector.get('end1').get('connectorEnd'), state);
+//         var end2Loc = getEndCoordinateByID(connector.get('end2').get('connectorEnd'), state);
+//         console.log("Location: ",end1Loc, end2Loc);
+//         if(    distanceBetweenPoints(x,y, end1Loc.x, end1Loc.y) < SELECT_DISTANCE
+//             || distanceBetweenPoints(x,y, end2Loc.x, end2Loc.y) < SELECT_DISTANCE ){
+//             return connector.set('selected', true);
+//         }
+//         return connector.get('selected')? connector.set('selected', false) : connector;
+//     })
+//     console.groupEnd();
+//     return connectors;
+// }
+
+/**
+ * Подсвечиваем коннектор, если мышка близко к нему
+ * @param x
+ * @param y
+ * @param state
+ * @returns {*}
+ */
+export const computeHighlightConnector = (x, y, state) =>{
+    var hasHighlight = false;
+    return state.get('connectors').map(connector => {
+        var end1Point = getEndCoordinateByID(connector.get('end1').get('connectorEnd'), state);
+        var end2Point = getEndCoordinateByID(connector.get('end2').get('connectorEnd'), state);
+        var newConnector = connector;
+        if(!hasHighlight && dist_point_to_segment({x:x,y:y}, end1Point, end2Point) < SELECT_DISTANCE){
+            hasHighlight = true;
+            newConnector = newConnector.set('highlight', true);
+        }else{
+            newConnector = connector.get('highlight')? connector.set('highlight', false) : connector;
+        }
+        // console.log("Location: ",end1Loc, end2Loc);
+        // if(    distanceBetweenPoints(x,y, end1Loc.x, end1Loc.y) < SELECT_DISTANCE
+        //     || distanceBetweenPoints(x,y, end2Loc.x, end2Loc.y) < SELECT_DISTANCE ){
+        //
+        // }
+        return newConnector;
+    })
+}
+
 export const mouseMove = (mouseX, mouseY) => {
     return (dispatcher, getState) => {
         
         var state = getState().svgImmutable;
+        //Расчет концевиков
         dispatcher({type: END_LOCATION, distances: computeEndLocationVisibility(mouseX, mouseY, state) });
-        if(!state.get('moveMode')) return;
+
+        if(!state.get('moveMode')) {
+            //Если не в режиме перемещения чего-то
+
+            //Выделяем коннектор если мышка близко к одному из его концов
+            //dispatcher({type: SELECT_CONNECTOR, connectors: computeConnectorSelection(mouseX, mouseY, state) });
+
+            //Выделяем коннектор если мышка близко к нему
+            dispatcher({type: HIGHLIGHT_CONNECTOR, connectors: computeHighlightConnector(mouseX, mouseY, state) });
+            return;
+        }
 
         //определяем расстояние до первого коннектора
         //var dist = distancePointSegment(mouseX, mouseY, state.connectors[0].cid1.x, state.connectors[0].cid1.y, state.connectors[0].cid2.x, state.connectors[0].cid2.y);
@@ -133,6 +195,7 @@ export const mouseMove = (mouseX, mouseY) => {
             var nearestEnd = findNearestConnectorEnd(state, {x: mouseX, y:mouseY});
             console.group('%c nearestEnd',"color:red", nearestEnd);
             var connectors = state.get('connectors').map(connector => {
+                //Если коннектор сейчас перетаскивается, то обрабатываем отдельно
                 if( connector.get('id') == state.getIn(['selected','id']) ){
                     var newConnector = connector;
                     var tail = state.getIn(['selected','tail']);
@@ -147,4 +210,3 @@ export const mouseMove = (mouseX, mouseY) => {
         }
     }
 }
-
