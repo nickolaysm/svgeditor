@@ -1,33 +1,64 @@
 import React, { Component } from 'react'
-//import Node from './Node'
 import ImNode from './ImNode'
 import Connector from './Connector'
 import { connect } from 'react-redux'
-import { selectNode, startMove, stopMove, mouseMove } from '../actions'
+import { mouseMove, mouseUp, mouseDown, domReady } from '../actions/system'
 import ConnectorEnd from './ConnectorEnd'
+import {CONNECTOR, NODE} from "../const/entity";
+import throttle from "lodash/throttle";
+import {MOUSE_MOVE_ACTION_DELAY} from "../const/entity";
+import {timer} from 'd3-timer';
 
 //import {DevTools} from './DevTools'
+var hasChange = false;
+var mousePoint = null;
 
 class Svg extends Component {
 
-  mouseDown(){
-    //this.props.startMove();
+  componentDidUpdate(){
+    //console.log('---',(new Date()).getMilliseconds(),"Svg componentDidUpdate");
+  }
+
+  mouseDown(e){
+    //console.log('mouseDown', e);
+    var pt = this.refs.svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    var point = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
+
+    this.props.mouseDown(point);
   }
 
   mouseUp(){
-    this.props.stopMove();
+    this.props.mouseUp();
   }
 
   mouseMove(e){
-    //console.log('Svg mouseMove');
-    var pt = this.refs.svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
-    this.props.mouseMove(loc.x, loc.y);
+    //console.log('+++', (new Date()).getMilliseconds(),'Svg mouseMove', this);
+    //this.state.throttleMouseMove(e.clientX, e.clientY);
+      this.mouseMoveThrottle(e.clientX, e.clientY);
   }
-  
+
+    mouseMoveThrottle(clientX, clientY){
+        var pt = this.refs.svg.createSVGPoint();
+        pt.x = clientX; pt.y = clientY;
+        var point = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
+        //console.log('--= Svg  ',point, clientX, clientY, this.refs.svg);
+        hasChange = true;
+        mousePoint = point;
+        //this.props.mouseMove(point);
+      }
+
+  domReadyHandler(){
+    if(hasChange && mousePoint != null)
+      this.props.domReady(mousePoint);
+    hasChange = false;
+  }
+
   componentWillMount(){
-    
+    //Функция подготовлена, так что бы событие бросалось не чаще одного раза в определенный интерфал времени
+    hasChange = false;
+    timer(::this.domReadyHandler);
+    this.setState({throttleMouseMove: throttle((x, y)=>{this.mouseMoveThrottle(x,y)}, MOUSE_MOVE_ACTION_DELAY, { 'leading': true,'trailing': true }) });
   }
   
   componentWillReceiveProps(){
@@ -35,15 +66,14 @@ class Svg extends Component {
   }
 
   render() {    
-    console.log('this.props',this.props, 'this.props.nodes.toArray()', this.props.nodes.toArray());
+    //console.log('this.props',this.props, 'this.props.nodes.toArray()', this.props.nodes.toArray());
     //console.log('render SVG');
     var nodes = this.props.nodes.map(node =>
         <ImNode key={node.get('id')} 
             node={node} 
             connectorEnd={this.props.connectorEnd.filter( end => end.get('node')==node.get('id') )} 
-            selected={this.props.selected.get('type') == "NODE" && this.props.selected.get('id') === node.get('id')} 
-            onSelect={this.props.onSelect} 
-            startMove={this.props.startMove} />);
+            selected={this.props.selected.get('type') == NODE && this.props.selected.get('id') === node.get('id')}
+            />);
 
     var connectorEnds = this.props.connectorEnd.map( end => {
       var node = this.props.nodes.filter( node => node.get('id') == end.get('node') );
@@ -54,6 +84,9 @@ class Svg extends Component {
     var connectors = this.props.connectors.map(connector =>{
       var end1 = null;
       var end2 = null;
+      // console.log('--- connector', connector.toJS());
+      // console.log('--- this.props.connectorEnd', this.props.connectorEnd.toJS());
+
       this.props.connectorEnd.forEach( end => {
         if(end.get('id') == connector.getIn(['end1','connectorEnd'])) end1 = end;
         if(end.get('id') == connector.getIn(['end2','connectorEnd'])) end2 = end;
@@ -65,8 +98,10 @@ class Svg extends Component {
         if(node.get('id') == end1.get('node')) node1 = node;
         if(node.get('id') == end2.get('node')) node2 = node;
       })
-      
-      return <Connector key={connector.get('id')} startMove={this.props.startMove} connector={connector} end1={end1} end2={end2} node1={node1} node2={node2} onSelect={this.props.onSelect}/>
+
+      return <Connector key={connector.get('id')} connector={connector} end1={end1} end2={end2} node1={node1} node2={node2}
+                        selected = {this.props.selected.get('type') == CONNECTOR && this.props.selected.get('id') === connector.get('id')}
+                        tail={this.props.selected.get('tail')}/>
     });
         
     var style = {WebkitUserSelect: 'none',  userSelect: 'none'};
@@ -84,7 +119,7 @@ class Svg extends Component {
 }
 
 const mapStateToProps = (state) => {
-  console.log('SVG Container state', state);
+  //console.log('SVG Container state', state);
   return {
     nodes: state.svgImmutable.get('nodes'),
     connectors: state.svgImmutable.get('connectors'),
@@ -95,17 +130,17 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    onSelect: (id, type, tail, switchX, switchY) => {
-      dispatch(selectNode(id, type, tail, switchX, switchY))
-    },
-    startMove: () => {
-      dispatch(startMove())
-    },
-    stopMove: () => {
-      dispatch(stopMove())
-    },
     mouseMove: (mouseX, mouseY) => {
       dispatch(mouseMove(mouseX, mouseY))
+    },
+    mouseUp: () =>{
+      dispatch(mouseUp())
+    },
+    mouseDown: (e) =>{
+      dispatch(mouseDown(e))
+    },
+    domReady: (point)=>{
+      dispatch(domReady(point))
     }
 
   }

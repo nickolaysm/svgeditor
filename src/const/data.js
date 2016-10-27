@@ -1,8 +1,8 @@
 import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import {/*DISCONNECTED, */CONNECTED} from '../const/connectors'
 
-//Инициализирующие тестовые данные 
-export const INIT_DATA = {
+
+var init_data = {
     //флаг говорящий о том, что мы находимся в режиме перемещения какой-либо сущности
     moveMode: false,
     //Информация о том, какая сущность сейчас активна. 
@@ -33,10 +33,26 @@ export const INIT_DATA = {
     //state - прикреплен ли конец коннектора или его перетаскивают
     //connectorEnd - идентификатор точки к которой прикреплен коннектор
     //loc - в случае когда state:DISCONNECTED содержит координаты, где сейчас конец коннектора (когда перетаскивают)
-    //canSelected - означает, что мышка достаточно близко, что бы выделить этот объект
+    //highlight - означает, что мышка достаточно близко, что бы выделить этот объект
     connectors: [
         {id:0, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 3, loc:null}, highlight: false },
         {id:1, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: 4, loc:null}, highlight: false }
     ]   
 
 }
+
+
+const generateINITDATA = () =>{
+    for(var i=5; i<50; i++){
+        var newObj = {id: i, loc:{x:50+i*10 , y: 200+i*10}, width: 120, height:100, caption: 'Узел '+i, value: 'Статус'};
+        init_data.nodes.push(newObj);
+        var newConnectorEnd = {id:i+10, node: i, edge:EDGE_BOTTOM, shiftLoc:{x: 0, y:0}, visible: true , opacity: 1.0 };
+        init_data.connectorEnd.push(newConnectorEnd);
+        var newConnector = {id:5+i, end1:{state:CONNECTED, connectorEnd: 0, loc: null}, end2:{state:CONNECTED, connectorEnd: i+10, loc:null}, highlight: false };
+        init_data.connectors.push(newConnector);
+    }
+    return init_data;
+}
+
+//Инициализирующие тестовые данные
+export const INIT_DATA =   generateINITDATA();//init_data;

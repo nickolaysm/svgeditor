@@ -17,7 +17,8 @@ export default class ConnectorEnd extends Component {
   }
   
   componentWillReceiveProps(nextProps){
-    this.setState(this.createStateObject(nextProps.end, nextProps.node))
+    if(nextProps.end != this.props.end)
+      this.setState(this.createStateObject(nextProps.end, nextProps.node))
   }
 
   shouldComponentUpdate(nextProps){
@@ -33,7 +34,7 @@ export default class ConnectorEnd extends Component {
     
     //Рисуем кросс крест
     return (
-      <svg ref='svg'>
+      <svg >
           <line x1={this.state.loc.x-crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x+crossSize} y2={this.state.loc.y+crossSize} strokeOpacity={opacity} style={{stroke:'rgb(0,150,150)',strokeWidth:'1'}} />
           <line x1={this.state.loc.x+crossSize} y1={this.state.loc.y-crossSize} x2={this.state.loc.x-crossSize} y2={this.state.loc.y+crossSize} strokeOpacity={opacity} style={{stroke:'rgb(0,150,150)',strokeWidth:'1'}} />
       </svg>

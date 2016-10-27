@@ -10,7 +10,11 @@ export default class Connector extends Component {
         this.state = {width: 2, edge:null, canDrag: false, arrowKey:0};
     }
 
-    createStateObject(connector, end1, end2, node1, node2, state){
+    checkOnUpdate(nextProps){
+        return (nextProps.connector != this.props.connector) || (nextProps.end1 != this.props.end1) || (nextProps.end2 != this.props.end2) || (nextProps.selected != this.props.selected);
+    }
+
+    createStateObject(connector, end1, end2, node1, node2, selected, state){
         // console.log("connector.get('end1').get('state')",connector.get('end1').get('state'), connector.toJS());
         // console.log("connector.get('end2').get('state')",connector.get('end2').get('state'), connector.toJS());
         var propName = ["1", "2"];
@@ -26,15 +30,22 @@ export default class Connector extends Component {
 
         // console.log("locs", locs);
         var arrowKey =  state.arrowKey < 10 ? "" + connector.get('id') +state.arrowKey+1 : "0";
-        return {...connector.toJS(), end1:locs[0], end2:locs[1], arrowKey: arrowKey}
+        let result = {...connector.toJS(), end1:locs[0], end2:locs[1], arrowKey: arrowKey, selected: selected}
+        //console.log('&&&&&&&&&&& result', result);
+        return result;
     }
     
     componentWillMount(){
-        this.setState(this.createStateObject(this.props.connector, this.props.end1, this.props.end2, this.props.node1, this.props.node2, this.state))  
+        this.setState(this.createStateObject(this.props.connector, this.props.end1, this.props.end2, this.props.node1, this.props.node2, this.props.selected , this.state))
     }
     
     componentWillReceiveProps(nextProps, nextState){
-        this.setState(this.createStateObject(nextProps.connector, nextProps.end1, nextProps.end2, nextProps.node1, nextProps.node2, nextState))
+        if(this.checkOnUpdate(nextProps))
+            this.setState(this.createStateObject(nextProps.connector, nextProps.end1, nextProps.end2, nextProps.node1, nextProps.node2, nextProps.selected, nextState))
+    }
+
+    shouldComponentUpdate(nextProps){
+        return this.checkOnUpdate(nextProps);
     }
 
     handleClick(){
@@ -46,29 +57,18 @@ export default class Connector extends Component {
     }
 
     mouseDown(e){
-        //var x = e.clientX; var y = e.clientY;
-        //var x1 = this.props.x1; var x2 = this.props.x2; var y1 = this.props.y1; var y2 = this.props.y2;
-        //var a = y2 - y1;
-        //var b = x1 - x2;
-        //var c = x1*(y1-y2) + y1*(x2-x1);
-        //var fun = a*x + b*y + c;
-        //var D = (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1);
-        //var d = Math.abs(a*x + b*y +c)/Math.sqrt(a*a + b*b);
-        //console.log('Connector mouseDown',e, e1, e2, e.clientX, e.clientY, 'line res: ', a,'*(',x,')+',b,'*(',y,')+',c,'=',fun, 'D=',D, 'd=', d);
-        var pt = this.refs.svg.createSVGPoint();
-        pt.x = e.clientX; pt.y = e.clientY;
-        var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
-        //d = Math.abs(a*loc.x + b*loc.y +c)/Math.sqrt(a*a + b*b);
-        //console.log('Connector mouseDown after transform','d=', d);
-
-        if(this.distance(this.state.end1.x, this.state.end1.y, loc.x, loc.y) < SELECT_DISTANCE) {
-          this.props.onSelect(this.state.id, "CONNECTOR", 1, 0, 0)
-          this.props.startMove();
-        }
-        else if(this.distance(this.state.end2.x, this.state.end2.y, loc.x, loc.y) < SELECT_DISTANCE) {
-          this.props.onSelect(this.state.id, "CONNECTOR", 2, 0, 0)
-          this.props.startMove();
-        }
+        // var pt = this.refs.svg.createSVGPoint();
+        // pt.x = e.clientX; pt.y = e.clientY;
+        // var loc = pt.matrixTransform(this.refs.svg.getScreenCTM().inverse());
+        //
+        // if(this.distance(this.state.end1.x, this.state.end1.y, loc.x, loc.y) < SELECT_DISTANCE) {
+        //   this.props.onSelect(this.state.id, "CONNECTOR", 1, 0, 0)
+        //   this.props.startMove();
+        // }
+        // else if(this.distance(this.state.end2.x, this.state.end2.y, loc.x, loc.y) < SELECT_DISTANCE) {
+        //   this.props.onSelect(this.state.id, "CONNECTOR", 2, 0, 0)
+        //   this.props.startMove();
+        // }
     }
 
     mouseOver(){
@@ -96,11 +96,11 @@ export default class Connector extends Component {
 
     //TODO: Продумать как производить выделение коннектора
     render() {
-      //console.log('+++ connector render', this.state.end1, this.state.end2);
-      var cursor = this.state.highlight  ? 'copy' : 'default';
-      var stroke = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
-      var arrowColor  = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
-      //var width = this.state.selected ? 4 : 2;
+      //console.log('======== Connector render', this.state.end1, this.state.end2);
+        var cursor = this.state.highlight  ? 'copy' : 'default';
+        var stroke = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
+        stroke = this.state.selected ? 'rgb(100, 255, 0)' : stroke;
+        var arrowColor  = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
       return (
           <svg ref='svg' style={{cursor:cursor}}>
             <defs>
@@ -116,8 +116,7 @@ export default class Connector extends Component {
                 </marker>
 
             </defs>
-              {/*<line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} /> */}
-            <line onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
+              {/*<line onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />*/}
             <line markerEnd={'url(#Arrow'+this.state.id+')'} markerStart='url(#markerBegin)' onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} stroke={stroke} fill={stroke} style={{strokeWidth:'2px'}} />
           </svg>
       )
@@ -125,4 +124,3 @@ export default class Connector extends Component {
 
 }
 
-//<line onMouseOver={::this.mouseOver} onMouseMove={::this.mouseOver} onMouseOut={::this.mouseOut}  onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />
