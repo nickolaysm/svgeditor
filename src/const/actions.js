@@ -11,5 +11,8 @@ export const END_LOCATION         = 'ENDLOCATION'
 export const SELECT_NODE          = 'SELECT_NODE'
 export const SELECT_CONNECTOR     = 'SELECT_CONNECTOR'
 export const HIGHLIGHT_CONNECTOR  = 'HIGHLIGHT_CONNECTOR'
+export const HIGHLIGHT            = 'HIGHLIGHT';
 export const CONNECTOR_END_VISIBILITY = 'CONNECTOR_END_VISIBILITY'
+export const FRAME_READY          = 'FRAME_READY'
+export const ADD_NODE             = 'ADD_NODE'
 

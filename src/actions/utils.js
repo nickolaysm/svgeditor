@@ -28,6 +28,9 @@ export const getEndLocation = (state, connector, endName) => {
     var end1Location = null;
     if( connector.getIn([endName, 'state']) == DISCONNECTED ){
         end1Location =  connector.getIn([endName, 'loc']);
+        var connectorEndID = connector.getIn([endName, 'connectorEnd']);
+        var endLoc = getEndCoordinateByID(state, connectorEndID);
+        end1Location.edge = endLoc.get('edge');
     }else {
         var connectorEnd = connector.getIn([endName, 'connectorEnd']);
         end1Location = getEndCoordinateByID(state, connectorEnd);
@@ -41,8 +44,10 @@ export const getEndLocation = (state, connector, endName) => {
  * @param state иммутабельное состояние всей системы
  */
 export const getEndCoordinateByID = (state, endId) => {
-    var connectorEnd = getEndByID(state, endId);
-    var node = getNodeByID(connectorEnd.get('node'), state);
+    let connectorEnd = state.json.connectorEnd[endId];
+    let node = state.json.nodes[connectorEnd.get('node')];
+    //var connectorEnd = getEndByID(state, endId);
+    //var node = getNodeByID(connectorEnd.get('node'), state);
     return getEndCoordinate(node.toJS(), connectorEnd.toJS());
 }
 
@@ -62,9 +67,10 @@ export const getEndCoordinate = (node, end) => {
  * @param nodeLoc положение ноды (верзний левый угол)
  * @param nodeWidth ширина ноды
  * @param nodeHeight высота ноды
+ * @return {x:0, y:0, edge: edge}
  */
 export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeight) => {
-    var endLoc = {x:0, y:0};
+    var endLoc;
     switch(edge){
         case EDGE_TOP:
             endLoc = { x: nodeLoc.x + Math.round(nodeWidth/2), y: nodeLoc.y };
@@ -83,6 +89,7 @@ export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeigh
     }
     endLoc.x = endLoc.x + shiftLoc.x;
     endLoc.y = endLoc.y + shiftLoc.y;
+    endLoc.edge = edge;
     return endLoc;
 }
 
@@ -129,3 +136,4 @@ export const computeOpacity = (distance, min, max) => {
     else if(distance > max) return 0
     else return (max - distance)/(max - min);
 }
+

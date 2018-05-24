@@ -1,9 +1,11 @@
 import Immutable from 'immutable'
- import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION, SELECT_CONNECTOR, HIGHLIGHT_CONNECTOR} from '../const/actions'
+ import {HIGHLIGHT, SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOUSE_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION, SELECT_CONNECTOR, HIGHLIGHT_CONNECTOR} from '../const/actions'
 import {INIT_DATA} from '../const/data'
 import {NODE, CONNECTOR} from "../const/entity";
 import {CONNECTOR_END_VISIBILITY} from "../const/actions";
 import {STOP_MOVE_NODE} from "../const/actions";
+import {FRAME_READY} from "../const/actions";
+import {ADD_NODE} from "../const/actions";
 
 const initState = Immutable.fromJS(INIT_DATA);
 
@@ -13,36 +15,70 @@ const computeMouseShift = (nodePosition, mousePosition) => {
 }
 
 const svgReducer = (state = initState, action) => {
-    console.log('reducer type', action.type);
+    //console.log('reducer type', action.type, action);
+    let accumulateChanges = state.get('accumulateChanges');
+    let currentState =  state.get('currentState');
+    let oldState = state.get('oldState');
     switch(action.type){
         case SELECT_NODE:
-            return state
+            accumulateChanges =  accumulateChanges
                 .set('selected', Immutable.fromJS({id: action.node.get('id'), type: NODE}) )
                 .set('shiftLoc', Immutable.fromJS( computeMouseShift(action.node.get('loc').toJS(), action.mousePosition) ));
+            break;
         case SELECT_CONNECTOR:
-            return state.set('selected', Immutable.fromJS({id: action.connector.get('id'), type: CONNECTOR, tail: action.tail}));
-        case HIGHLIGHT_CONNECTOR:
-            return state.set('connectors', action.connectors);
-            //return state;
+            accumulateChanges =  accumulateChanges.set('selected', Immutable.fromJS({id: action.connector.get('id'), type: CONNECTOR, tail: action.tail}));
+            break;            
+        case HIGHLIGHT:
+            console.log("HIGHLIGHT");
+            accumulateChanges =  accumulateChanges.set('connectors', action.connectors).set('nodes', action.nodes);
+            break;
+        // case HIGHLIGHT_CONNECTOR:
+        //     accumulateChanges =  accumulateChanges.set('connectors', action.connectors);
+        //     break;
         case CONNECTOR_END_VISIBILITY:
-            return state.set('connectorEnd', action.ends);
-            //return state;
+            accumulateChanges =  accumulateChanges.set('connectorEnd', action.ends);
+            break;
         case START_MOVE:
-            return state.set('moveMode', true).set('oldState', state);
+            accumulateChanges =  accumulateChanges.set('moveMode', true);
+            oldState = state.get('currentState');
+            break;
         case MOVE_NODE:
-            console.log((new Date()).getMilliseconds(),"MOVE_NODE");
-            return state.set('nodes', action.nodes).set('connectorEnd', action.ends);
+            accumulateChanges =  accumulateChanges.set('nodes', action.nodes).set('connectorEnd', action.ends);
+            break;
         case CANCEL_MOVE:
-            return state.get('oldState');
+            currentState = oldState;
+            accumulateChanges = oldState;
+            break;
         case STOP_MOVE_NODE:
-            return state.set('moveMode', false).set('oldState', undefined);
+            accumulateChanges =  accumulateChanges.set('moveMode', false);
+            oldState = undefined;
+            break;
         case MOVE_CONNECTOR:
-            return state.set('connectors', action.connectors);
+            accumulateChanges =  accumulateChanges.set('connectors', action.connectors);
+            break;
         case STOP_MOVE_CONNECTOR:
-            return state.set('moveMode', false).set('oldState', undefined)
+            accumulateChanges =  accumulateChanges.set('moveMode', false);
+            oldState = undefined;
+            break;
+        case ADD_NODE:
+            accumulateChanges =  accumulateChanges.set('nodes', action.nodes);
+            currentState = accumulateChanges;
+            break;
+        case CHANGE_NODE:
+            // Надо переделать событие для редактора
+            // accumulateChanges = accumulateChanges.get('nodes').map(node => {
+            //     if(node.get('id') == action.nodeId)
+            //         return node.set('caption', action.caption).set('value', action.value);
+            //     return node;
+            // });
+            break;
+        case FRAME_READY:
+            currentState = accumulateChanges;
+            break;
         default:
-            return state;
+
     }
+    return state.set('accumulateChanges', accumulateChanges).set('currentState',currentState).set('oldState',oldState);
   //
   // switch (action.type) {
   //   case SELECT_NODE:

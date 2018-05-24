@@ -1,10 +1,11 @@
-import { /*initConnectors,*/ /*distancePointSegment,*/ hasDisconnected, computeEndLocationVisibility, getEndCoordinate, distanceBetweenPoints, getEndCoordinateByID} from '../utils'
+import { /*initConnectors,*/ /*distancePointSegment,*/ hasDisconnected, getEndCoordinate, distanceBetweenPoints, getEndCoordinateByID} from '../utils'
 import {SELECT_NODE, CHANGE_NODE, STOP_MOVE, STOP_MOVE_CONNECTOR, START_MOVE, MOVE_NODE, MOVE_CONNECTOR, CANCEL_MOVE, END_LOCATION, HIGHLIGHT_CONNECTOR} from '../const/actions'
 //import {EDGE_TOP, EDGE_BOTTOM, EDGE_LEFT, EDGE_RIGHT} from '../const/connectors'
 import Immutable from 'immutable'
 //import _ from 'lodash'
 import {SELECT_DISTANCE} from '../const/connectors'
 import {dist_point_to_segment} from '../utils/math'
+import {computeEndLocationVisibility} from "./subject";
 
 export const selectNode = (nodeId, type, tail, switchX, switchY) => {
     console.log('Action selectNode, switch',nodeId, type, tail, switchX, switchY);
@@ -148,7 +149,7 @@ export const mouseMove = (mouseX, mouseY) => {
         
         var state = getState().svgImmutable;
         //Расчет концевиков
-        dispatcher({type: END_LOCATION, distances: computeEndLocationVisibility(mouseX, mouseY, state) });
+        dispatcher({type: END_LOCATION, distances: computeEndLocationVisibility(state, mouseX, mouseY) });
 
         if(!state.get('moveMode')) {
             //Если не в режиме перемещения чего-то
@@ -169,10 +170,12 @@ export const mouseMove = (mouseX, mouseY) => {
 
         if (state.getIn(['selected','type']) == "NODE"){
             let selectedNodeId = state.getIn(['selected','id']);
-            console.log("mouse Move, node select, ", mouseX, mouseY, state.getIn(['shiftLoc','x']), state.getIn(['shiftLoc','y']));
+            let shiftLocX = state.getIn(['shiftLoc','x']);
+            let shiftLocY = state.getIn(['shiftLoc','y']);
+            //console.log("mouse Move, node select, ", mouseX, mouseY, state.getIn(['shiftLoc','x']), state.getIn(['shiftLoc','y']));
             let nodes = state.get('nodes').map(node => {
                 if ( node.get('id') == selectedNodeId ){
-                    return node.set('loc', Immutable.Map({x:mouseX - state.getIn(['shiftLoc','x']), y:mouseY - state.getIn(['shiftLoc','y'])}) );
+                    return node.set('loc', Immutable.Map({x:mouseX - shiftLocX, y:mouseY -  shiftLocY}));
                 }
                 return node;
             });
@@ -188,7 +191,7 @@ export const mouseMove = (mouseX, mouseY) => {
             //let connectors = initConnectors(state);
             return dispatcher({type: MOVE_NODE, nodes: nodes, connectorEnd: connectorEnd})
         } else if(state.getIn(['selected','type']) == "CONNECTOR"){
-            console.log("mouse Move, CONNECTOR select, ", mouseX, mouseY);
+            //console.log("mouse Move, CONNECTOR select, ", mouseX, mouseY);
             //var nodes = state.nodes;
             
             //let selectedConnector = state.get('connectors').filter(connector => connector.get('id') == state.getIn(['selected','id']) );

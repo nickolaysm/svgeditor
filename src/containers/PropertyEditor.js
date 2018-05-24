@@ -39,7 +39,7 @@ class Editor extends Component {
   }
 
   change(){
-    if(this.props.selected.type == "NODE") {
+    if(this.props.selected.type == 'NODE') {
       var captionInput = this.refs.captionInput.value;
       var valueInput = this.refs.valueInput.value;
       console.log('change', captionInput, valueInput);
@@ -53,14 +53,14 @@ class Editor extends Component {
     //var connectors = this.props.connectors.map(connector => <Connector x1={this.props.nodes[connector.id1].x} y1={this.props.nodes[connector.id1].y} x2={this.props.nodes[connector.id2].x} y2={this.props.nodes[connector.id2].y}/>)
     var caption = "";
     var value = "";
-    if(this.props.selected.type == "NODE"){
+    if(this.props.selected.type == 'NODE'){
       caption = this.props.nodes[this.props.selected.id].caption;
       value = this.props.nodes[this.props.selected.id].value;
     }
     return (
       <div>
-        <input ref="captionInput" type='text' value={caption} onChange={::this.change}/>
-        <input ref="valueInput" type='text' value={value} onChange={::this.change}/>
+        <input ref='captionInput' type='text' value={caption} onChange={::this.change}/>
+        <input ref='valueInput' type='text' value={value} onChange={::this.change}/>
       </div>
     )
   }
@@ -68,11 +68,11 @@ class Editor extends Component {
 }
 
 const mapStateToProps = (state) => {
-  //console.log('state', state);
+  console.log('state', state);
   return {
-    nodes: state.svgImmutable.get('nodes'),
-    connectors: state.svgImmutable.get('connectors'),
-    selected: state.svgImmutable.get('selected')
+    nodes: state.svgImmutable.get('currentState').get('nodes').toJS(),
+    connectors: state.svgImmutable.get('currentState').get('connectors').toJS(),
+    selected: state.svgImmutable.get('currentState').get('selected').toJS()
   }
 }
 

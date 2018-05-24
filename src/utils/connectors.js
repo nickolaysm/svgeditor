@@ -131,7 +131,7 @@ export const evalConnectorCoordByEdge = (node, edge) => {
     }else if(edge == EDGE_BOTTOM){//нижняя грань
         newCid =  {x: node.x + Math.round(node.width/2),  y: node.y + node.height}
     }
-    console.log("evalConnectorCoordByEdge: ", edge, newCid );
+    //console.log("evalConnectorCoordByEdge: ", edge, newCid );
     return newCid;
 }
 
@@ -143,13 +143,13 @@ const evalEdgeForNode = (node, cid) => {
     //Нужно определить сторону у node к которой прикрепить конец коннектора
     //node - квадратный, т.е. стороны либо горизонтальны, либо вертикальны
     var topSegmentResult = distancePointSegment(cid, node.x,  node.y, node.x + node.width, node.y);
-    console.log("topSegmentResult: ", topSegmentResult);
+    //console.log("topSegmentResult: ", topSegmentResult);
     var leftSegmentResult = distancePointSegment(cid, node.x, node.y, node.x, node.y+node.height);
-    console.log("leftSegmentResult: ", leftSegmentResult);
+    //console.log("leftSegmentResult: ", leftSegmentResult);
     var rightSegmentResult = distancePointSegment(cid, node.x + node.width, node.y, node.x + node.width, node.y+node.height);
-    console.log("rightSegmentResult: ", rightSegmentResult);
+    //console.log("rightSegmentResult: ", rightSegmentResult);
     var bottomSegmentResult = distancePointSegment(cid, node.x, node.y+node.height, node.x + node.width, node.y+node.height);
-    console.log("bottomSegmentResult: ", bottomSegmentResult);
+    //console.log("bottomSegmentResult: ", bottomSegmentResult);
 
     var array = [topSegmentResult, leftSegmentResult, rightSegmentResult, bottomSegmentResult];
     var maxIndex = 0;
@@ -311,7 +311,7 @@ const getNodeByID = (nodeId, state) =>{
 export const getEndCoordinateByID = (endId, state) => {
     var connectorEnd = getEndByID(endId, state);
     var node = getNodeByID(connectorEnd.get('node'), state);
-    console.log("getEndCoordinateByID",connectorEnd.toJS(), node.toJS());
+    //console.log("getEndCoordinateByID",connectorEnd.toJS(), node.toJS());
     return getEndCoordinate(node.toJS(), connectorEnd.toJS());
 }
 
@@ -337,7 +337,7 @@ export const isConnectorNear = (node, cid) =>{
  * @param nodeHeight высота ноды
  */
 export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeight) => {
-    var endLoc = {x:0, y:0};
+    var endLoc;
     switch(edge){
         case EDGE_TOP:
             endLoc = { x: nodeLoc.x + Math.round(nodeWidth/2), y: nodeLoc.y };
@@ -356,27 +356,6 @@ export const computeEndLocation = (edge, shiftLoc, nodeLoc, nodeWidth, nodeHeigh
     }
     endLoc.x = endLoc.x + shiftLoc.x;
     endLoc.y = endLoc.y + shiftLoc.y;
+    endLoc.edge = edge;
     return endLoc;
-}
-
-/**
- * Расстояние от точки до центра ноды.
- * По хорошему нужно бы переделать на расстояние до граней ноды
- */
-export const distaneToNode = (x, y, node) => {
-    var nodeObj = node.toJS();
-    var distanceToCenter = distanceBetweenPoints( x, y, nodeObj.loc.x + Math.abs(nodeObj.width/2), nodeObj.loc.y + Math.abs(nodeObj.height/2) );
-    return distanceToCenter;
-}
-
-/**
- * Вычисляем видимость или невидимость точек присоединения коннекторов.
- * Точки относящиеся к ноде становяться постепенно видимыми в зависимости от приближения к ноде мышки
- */
-export const computeEndLocationVisibility = (mouseX, mouseY, state) => {
-    //Вычисляем расстояние от мышки до ноды.
-    return state.get('nodes').map(node => {
-        return {nodeId: node.get('id'), distance: distaneToNode(mouseX, mouseY, node)}
-    }).toJS();
-    
 }

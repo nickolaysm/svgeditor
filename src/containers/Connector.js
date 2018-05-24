@@ -1,6 +1,16 @@
 import React, { Component } from 'react'
 import {computeEndLocation} from '../utils'
 import {SELECT_DISTANCE} from '../const/connectors'
+import {calculatePointArray} from "../utils/pathCalculator";
+import d3 from "d3";
+import {interPathHelper} from "../utils/pathCalculator";
+import {ellipsePath} from "../utils/pathCalculator";
+import {pathArrayToString} from "../utils/pathCalculator";
+import {CONNECTOR_TYPE} from "../const/connectors";
+import {CONNECTOR_TYPE_LINE} from "../const/connectors";
+import {EDGE_TOP} from "../const/connectors";
+import {CONNECTOR_TYPE_PATH} from "../const/connectors";
+import {calculateCircleLinePointArray} from "../utils/pathCalculator";
 
 
 export default class Connector extends Component {
@@ -22,16 +32,26 @@ export default class Connector extends Component {
         var locs = propName.map(name =>{
             var endName = "end"+name;
             // console.log("connector.get(endName).get('state')",endName, connector.get(endName).get('state'));
-            return connector.get(endName).get('state') == "DISCONNECTED" 
-                ? { x: connector.getIn([endName,'loc','x']), y: connector.getIn([endName,'loc','y']) }
-                : computeEndLocation(obj[endName].get('edge'), obj[endName].get('shiftLoc').toJS(), obj["node"+name].get('loc').toJS(), obj["node"+name].get('width'), obj["node"+name].get('height') );
-        })
+            if(connector.get(endName).get('state') == "DISCONNECTED") {
+                return {
+                    x: connector.getIn([endName, 'loc', 'x']),
+                    y: connector.getIn([endName, 'loc', 'y']),
+                    edge: EDGE_TOP
+                }
+            }else {
+                return computeEndLocation(
+                    obj[endName].get('edge'),
+                    obj[endName].get('shiftLoc').toJS(),
+                    obj["node" + name].get('loc').toJS(),
+                    obj["node" + name].get('width'),
+                    obj["node" + name].get('height'));
+            }
+        });
         
 
         // console.log("locs", locs);
         var arrowKey =  state.arrowKey < 10 ? "" + connector.get('id') +state.arrowKey+1 : "0";
-        let result = {...connector.toJS(), end1:locs[0], end2:locs[1], arrowKey: arrowKey, selected: selected}
-        //console.log('&&&&&&&&&&& result', result);
+        let result = {...connector.toJS(), end1:locs[0], end2:locs[1], arrowKey: arrowKey, selected: selected, isSameNode: node1 == node2 /*, end1Obj: end1.toJS(), end2Obj: end2.toJS()*/};
         return result;
     }
     
@@ -50,10 +70,6 @@ export default class Connector extends Component {
 
     handleClick(){
         console.log('===========Handle line click');
-    }
-
-    distance(x1, y1, x2, y2){
-        return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
     }
 
     mouseDown(e){
@@ -94,13 +110,33 @@ export default class Connector extends Component {
       //this.setState({canDrag: false, width: 2, edge:null});
     }
 
-    //TODO: Продумать как производить выделение коннектора
+
     render() {
       //console.log('======== Connector render', this.state.end1, this.state.end2);
         var cursor = this.state.highlight  ? 'copy' : 'default';
         var stroke = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
         stroke = this.state.selected ? 'rgb(100, 255, 0)' : stroke;
         var arrowColor  = this.state.highlight  ? 'rgb(100, 0, 255)' : 'rgb(255, 0,0)';
+        //console.log('Connector state', this.state);
+        var path = calculatePointArray({x: this.state.end1.x, y: this.state.end1.y, position: this.state.end1.edge}, {x: this.state.end2.x, y: this.state.end2.y, position: this.state.end2.edge});
+        var lineFunction = null;
+        if(this.state.isSameNode){
+            path = calculateCircleLinePointArray({x: this.state.end1.x, y: this.state.end1.y, position: this.state.end1.edge}, {x: this.state.end2.x, y: this.state.end2.y, position: this.state.end2.edge});
+            console.log("================ path:", path);
+            lineFunction = d3.svg.line()
+                .x( d => d.x )
+                .y( d => d.y )
+                .interpolate("linear");
+        }
+
+        if(CONNECTOR_TYPE === CONNECTOR_TYPE_PATH) {
+            lineFunction = d3.svg.line()
+                .x( d => d.x )
+                .y( d => d.y )
+                .interpolate("basis");
+            //.interpolate("linear");
+        }
+
       return (
           <svg ref='svg' style={{cursor:cursor}}>
             <defs>
@@ -116,8 +152,13 @@ export default class Connector extends Component {
                 </marker>
 
             </defs>
-              {/*<line onClick={this.handleClick} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} style={{fillOpacity:'0',strokeOpacity:'0', strokeWidth:'30', stroke:'blue', fill:'red', strokeLinecap:'round'}} />*/}
-            <line markerEnd={'url(#Arrow'+this.state.id+')'} markerStart='url(#markerBegin)' onMouseOver={::this.mouseOver} onMouseOut={::this.mouseOut} onMouseDown={::this.mouseDown} x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} stroke={stroke} fill={stroke} style={{strokeWidth:'2px'}} />
+              { CONNECTOR_TYPE === CONNECTOR_TYPE_LINE
+                   ? ( this.state.isSameNode
+                            ? <path id={"connector_path_"+this.state.id} d={lineFunction(path)} stroke={stroke} fill={'none'} style={{strokeWidth:'2px'}}  markerEnd={'url(#Arrow'+this.state.id+')'}/>
+                            : <line markerEnd={'url(#Arrow'+this.state.id+')'} markerStart='url(#markerBegin)' x1={this.state.end1.x} y1={this.state.end1.y} x2={this.state.end2.x} y2={this.state.end2.y} stroke={stroke} fill={stroke} style={{strokeWidth:'2px'}} />
+                     )
+                   : <path id={"connector_path_"+this.state.id} d={lineFunction(path)} stroke={stroke} fill={'none'} style={{strokeWidth:'2px'}}  markerEnd={'url(#Arrow'+this.state.id+')'}/>
+              }
           </svg>
       )
     }
